@@ -145,7 +145,28 @@
         </p>
 
 		<h2>Task 5: "Pixel sampling" for texture mapping</h2>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+        <p>
+            While drawing triangles with solid or interpolated colors is nice, pixel sampling allows us to apply a texture across the surface of a triangle. 
+            This makes it much easier to create significantly more detail with the same amount of geometry.
+            At a high level, pixel sampling involves taking some coordinates, transforming them to the space of a discrete function, and using the sample of that function at the transformed position as the value of the posiiton in the original space.
+            In our 'texture mapping' case, the discrete function will be a texture, with pixels defined at integer coordinates for some rectangular width and height. 
+            Additionally, we'll be transforming from the screen space to the texture's own space to sample the texture's pixels.
+        </p>
+        <p>
+            We'll be implementing two pixel sampling methods: nearest-neighbor and bilinear.
+            Nearest-neightbor simply rounds the transformed coordinates to the nearest pixel coordinates in the texture, and returns the color value of that pixel.
+            Bilinear sampling instead performs a linear interpolation on the closest texture pixels the transformed coordinate lies between. 
+            This provides a smoother result, as the returned color is a weighted average of the surrounding pixels.
+        </p>
+        <p>
+            To actually implement pixel sampling, we'll re-use the barycentric calculations from Task 4. 
+            Since our triangle-rasterizing function is given both screen space x,y coordinates and texture space u,v coordinates, a barycentric representation of a sample's coordinates will allow us to easily transform between the two spaces.
+            This is because the 'proportion' of each triangle point in a coordinate should remain the same, regardless of any rotation, scaling, or translation effects resulting from transforming between the two spaces.
+            Then, just like in task 2, we precompute some values, in this case transformation matricies, apply the barycentric transformation to every sample point, and sample the specified texture at that point, using one of the above coordinates.
+            Note that, when implementing the texture sampling functions, we have to scale provided u,v coordinates by the texture's width and height, respectively, as the u,v coordinates are provided in a normalized format.
+        </p>
+
+        (IMAGES)
 
 		<h2>Task 6: "Level Sampling" with mipmaps for texture mapping</h2>
 		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
