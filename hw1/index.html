@@ -92,7 +92,39 @@
 		</div>
 		
 		<h2>Task 2: Antialiasing by Supersampling</h2>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+        <p>
+            While the previous rasterization algorithm does a decent job of rendering the triangle's shape, there are notable sampling artifacts.
+            These artifacts occur as a result of our sampling frequency being too low to properly capture the high-frequency boundries of the triangle.
+            In some cases, such as long, thin triangles, we fail to draw anything at all, resulting in disconnected or greatly shortened triangles.
+            Since we can't produce physical pixels with infinite resolution, we must instead improve our sampling algorithm.
+            To do this, we'll use antialiasing via supersampling, which will approximate limiting the maximum frequency in our image to a value we can render.
+        </p>
+        <p>
+            First, to support antialiasing by supersampling, we need to adjust how the program's sample buffer stores information. 
+            Whenever we set the sample rate of the program, we should also set the size of the sample buffer to be equal to \(width_{screen} * height_{screen} * s_{rate}\), where \(width_{screen}, height_{screen}\) are the screen's pixel dimensions, and \(s_{rate}\) is the supersampling rate we'll be using.
+            This ensures that we have \(s_{rate}\) color slots to write to for each pixel, which is sufficient to store our supersampled data.
+        </p>
+		<p>
+            Implementing supersampling requires some small modifications to the rasterization algorithm itself. 
+            Before iterating over the pixels of the triangle, my implementation precomputes 3 values that are used for every the supersample position calculation.
+            These are the "sample dimension", which is simply the number samples along a single axis, the "sample step", and the "half step".
+            The sample step is calculated as 1 divided by 1 plus the sample dimension, since we want all of our supersample positions to be within the pixel we are sampling.
+            The half step is simply half the sample step, and is used as a constant offset applied to all supersampling operations.
+        </p>
+        <p>
+            The pixel positions of the triangle are iterated over as in the standard rasterization process.
+            However, instead of checking if just the center of the pixel is in the triangle, we iterate over and check each of the super sample positions within the pixel.
+            For simplicity, the iteration over the supersamples is done with as a nested pair of for loops, with one for each axis.
+            Using the counter variables of each loop, we can calculate the super sample position as follows:
+            \[ (x + x_s * s_{step} + s_{hs},  y + y_s * s_{step} + s_{hs} ) \]
+            Where \(x,y\) are the initial pixel coordinates from rasterizing, \(x_s,y_s\) are the loop indicies for their respective axes, and \(s_{step},s_{hs}\) are the precomputed step and half step values.
+            After performing the same 'in triangle' check as before, the appropriate color is written to the sample buffer.
+            The supersample's index in the buffer is calculated as \( (x + y * width_{screen}) * s_{rate} + x_s + floor(s_{dim}) * y_s \),
+            where \(s_{rate}\) is the sample rate provided by the program, and \(s_{dim}\) is the precomputed sample dimension.
+        </p>
+        <p>
+            Finally, when drawing a pixel, the results of this supersampling process are applied by averaging supersampled color values for that pixel to produce an overall color. Note that this means we average a total of \(s_{rate}\) colors for each pixel drawn to the screen.
+        </p>
 
 		<h2>Task 3: Transforms</h2>
 		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
