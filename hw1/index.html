@@ -38,11 +38,6 @@
 
 		Link to GitHub repository: <a href="https://github.com/cal-cs184-student/hw-webpages-C-Herbert">github.com/cal-cs184-student/hw-webpages-C-Herbert</a>
 
-		<figure>
-			<img src="lion.jpg" alt="Lion" style="width:50%"/>
-			<figcaption>You can add images with captions!</figcaption>
-		</figure>
-
 		<!--
 		We've already added one heading per task, to make your write-up as navigable when grading. Please fit your write-up within these sections!
 		-->
@@ -179,9 +174,42 @@
             where \(s_{rate}\) is the sample rate provided by the program, and \(s_{dim}\) is the precomputed sample dimension.
         </p>
         <p>
-            Finally, when drawing a pixel, the results of this supersampling process are applied by averaging supersampled color values for that pixel to produce an overall color. Note that this means we average a total of \(s_{rate}\) colors for each pixel drawn to the screen.
+            Finally, when drawing a pixel, the results of this supersampling process are applied by averaging supersampled color values for that pixel to produce an overall color. 
+            Note that this means we average a total of \(s_{rate}\) colors for each pixel drawn to the screen.
+            After averaging the supersampling results, we have our desired antialiasing effect, as seen below:
         </p>
 
+        <div style="display: flex; flex-direction: column; align-items: center;">
+            <table style="width: 100%; text-align: center; border-collapse: collapse;">
+              <tr>
+                <td style="text-align: center;">
+                  <img src="t2_ss1.png" width="400px"/>
+                  <figcaption>Sample Rate: 1</figcaption>
+                </td>
+                <td style="text-align: center;">
+                  <img src="t2_ss2.png" width="400px"/>
+                  <figcaption>Sample Rate: 4</figcaption>
+                </td>
+              </tr>
+              <tr>
+                <td style="text-align: center;">
+                  <img src="t2_ss3.png" width="400px"/>
+                  <figcaption>Sample Rate: 9</figcaption>
+                </td>
+                <td style="text-align: center;">
+                  <img src="t2_ss4.png" width="400px"/>
+                  <figcaption>Sample Rate: 16</figcaption>
+                </td>
+              </tr>
+            </table>
+        </div>
+        <p>
+            As partially explained above, the visible blurring effect around edges of the triangles occurs because we need to either reduce the presence of high frquencies, or increase our sampling rate.
+            The supersample-then-average approach does this by first sampling the image at a higher rate, which reduces artifacts caused by high frequencies by increasing the Nyquist frequency.
+            This supersampled result is then downsampled to something we can actually display, which is done by averaging the supersampled results on a per-pixel basis.
+            The end result is a blurred image, since we've taken away some of the higher frequencies.
+            However, this blurred image better represents the underlying geometric object given the constraints of our display.
+            </p>
 		<h2>Task 3: Transforms</h2>
         <p>
             For this task, I was initially trying to pose the robot so that it was hanging from the top of the frame, like monkey bars. 
@@ -194,16 +222,26 @@
 			<figcaption>Jumping Robot</figcaption>
 		</figure>
 
-        
-
 		<h2>Task 4: Barycentric coordinates</h2>
         <p>
-        Barycentric coordinates are a coordinate system which allows us to represent any arbitrary point as a linear combination of 3 other points, forming a triangle. This is useful for interpolating values like color across the surface of a triangle, as well as switching between screen and texture space sample coordinates. To demonstrate barycentric coordinates, we have the following image:
+        Barycentric coordinates are a coordinate system which allows us to represent any arbitrary point as a linear combination of 3 other points, forming a triangle. 
+        This is useful for interpolating values like color across the surface of a triangle, as well as switching between screen and texture space sample coordinates. 
+        To demonstrate barycentric coordinates, we have the following image:
         </p>
-        (IMG)
+        <figure>
+			<img src="rgb_tri.png" style="width:50%"/>
+			<figcaption>Triangle, with corners assigned their own color channels.</figcaption>
+		</figure>
         <p>
-        In this triangle, we have a red, green, and blue corner. If we treat the 'proportion' of each corner in the samples' barycentric coordinates as the respective red, green, and blue values of the sample, we get the above image. With this understanding, it is clear that every sample location inside the triangle is some combination of the three corner positions.
+        In this triangle, we have a red, green, and blue corner. 
+        If we treat the 'proportion' of each corner in the samples' barycentric coordinates as the respective red, green, and blue values of the sample, we get the above image. 
+        With this understanding, it is clear that every sample location inside the triangle can be represented as some combination of the three corner positions.
         </p>
+
+        <figure>
+			<img src="test7_gradient.png" style="width:50%"/>
+			<figcaption>Test7 Screenshot</figcaption>
+		</figure>
 
 		<h2>Task 5: "Pixel sampling" for texture mapping</h2>
         <p>
