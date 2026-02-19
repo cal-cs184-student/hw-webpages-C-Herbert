@@ -32,11 +32,11 @@
 
 		<br>
 
-		Link to webpage: (TODO) <a href="https://cal-cs184-student.github.io/hw-webpages-C-Herbert/">cal-cs184-student.github.io/hw-webpages-C-Herbert</a>
+		Link to webpage: <a href="https://cal-cs184-student.github.io/hw-webpages-C-Herbert/">cal-cs184-student.github.io/hw-webpages-C-Herbert</a>
 		
 		<br>
 
-		Link to GitHub repository: (TODO) <a href="https://github.com/cal-cs184-student/hw-webpages-C-Herbert">github.com/cal-cs184-student/hw-webpages-C-Herbert</a>
+		Link to GitHub repository: <a href="https://github.com/cal-cs184-student/hw-webpages-C-Herbert">github.com/cal-cs184-student/hw-webpages-C-Herbert</a>
 
 		<figure>
 			<img src="lion.jpg" alt="Lion" style="width:50%"/>
@@ -63,34 +63,90 @@
 
 
 		<h2>Task 1: Drawing Single-Color Triangles</h2>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+		<p>
+            At a high level, rasterizing triangles involves picking a set of points to sample, checking if these points are in the triangle, and then assigning that position the triangle's color if they are inside.
+            Since we want to draw the colored samples to a screen, the set of points in our case will be an evenly-spaced grid with dimensions corresponding to those of the screen/window.
+            Each sample will then correspond to one screen pixel.
+            While we could iterate over the entire sample space for every triangle we want to rasterize, this would be highly inefficient.
+            Thus, we'll use the bounding box of the triangle to preemptively exclude certain sample points depending on whether the triangle could feasibly contain them.
+            To do this, when rasterizing a triangle, we only iterate over sample points within the bounding box.
+            This bounding box is easily calculated as a box with a 'lower' corner consisting of the minimum x and y coordinates of any point on the triangle, and an 'upper' corner consisting of the maximum x and y coordinates.
+            Note that either corner's x and y coordinates don't have to come from the same point of the triangle, they just have to be the max/min of their respective dimensions.
+            With these corner points in hand, we simply iterate over all sample points from the lower corner to the upper corner, checking if each is in the triangle or not.
+            If a sample point is in the triangle, we write the color of said triangle to a buffer with an index corresponding to the sample's position.
+        </p>
+        <p>
+            There are a number of methods we can use to check if a point is inside a triangle, though the one I chose for my implementation was to use the dot product of a sample point and the normal vectors of the triangle's sides.
+            By calculating the delta vector of a sample point with one of the vertices of a side, then taking the dot product of that vector and the side's normal vector, we can use the sign of the result to determine if the point is in the triangle or not.
+            If the dot product is nonnegative, and the triangle winds counter clockwise, then the sample is on the 'inside'-side of that edge of the triangle.
+            Repeating this for each side of the triangle, we have that the point is only inside the triangle if all dot products are greater than or equal to zero.
+            Note that 'nonnegative' flips to 'nonpositive' if the triangle winds in a clockwise direction.
+            Either way, this covers all the steps needed to rasterize a triangle.
+            The process ultimately allows us to take in an abstract geometric representation of a triangle and produce an image of it using only the discrete number of pixels on a screen.
+            While the bounding box approach isn't great, it is a good starting point, which I'll improve upon in the next section.
+        </p>
 
-		<p>Here is an example 2x2 gridlike structure using an HTML table. Each <b>tr</b> is a row and each <b>td</b> is a column in that row. You might find this useful for framing and showing your result images in an organized fashion.</p>
-		<div style="display: flex; flex-direction: column; align-items: center;">
-			<table style="width: 100%; text-align: center; border-collapse: collapse;">
-			  <tr>
-				<td style="text-align: center;">
-				  <img src="lion.jpg" width="400px"/>
-				  <figcaption>Caption goes here.</figcaption>
-				</td>
-				<td style="text-align: center;">
-				  <img src="lion.jpg" width="400px"/>
-				  <figcaption>Caption goes here.</figcaption>
-				</td>
-			  </tr>
-			  <tr>
-				<td style="text-align: center;">
-				  <img src="lion.jpg" width="400px"/>
-				  <figcaption>Caption goes here.</figcaption>
-				</td>
-				<td style="text-align: center;">
-				  <img src="lion.jpg" width="400px"/>
-				  <figcaption>Caption goes here.</figcaption>
-				</td>
-			  </tr>
-			</table>
-		</div>
-		
+        <h3>Rasterization Extra Credit:</h3>
+        <p>
+            While I initially went with the above bounding-box rasterization algorithm, I felt this scheme was wasteful performance-wise and wanted to improve it.
+            Figuring out how to do this took a couple tries, but I eventually ended up with the following algorithm.
+            The basic idea is to scan from the bottom of the triangle to the top of the triangle and, at each step, determine the leftmost and rightmost extents possibly covered by the triangle.
+            Then, with these extents, we scan from left to right.
+            This significantly reduces the number of samples we have to check in comparison to the bounding box case, since we can skip most of the blank area surrounding a triangle within its bounding box.
+            Additionally, we don't check any points outside the bounding box, so this algorithm can only improve on the bounding box appraoch.
+        </p>
+        <p>
+            Now, for the algorithm.
+            First, for each line segment of the triangle, figure out its maximum and y coordinates.
+            Since we're dealing with lines, the maximum and minimum must be one of the two points forming the line.
+            While doing this, we also record the overall maximum and minimum y coordinates of the triangle, like in the bounding box case.
+            We'll call these \(y_{min}\) and \(y_{max}\), respectively.
+        </p>
+        <p>
+            Once we have these values, we iterate from \(floor(y_{min})\) to \(floor(y_{max})\).
+            For each \(y\) value, we begin by iterating over the line segments, checking if \(y\) lands inside their (inclusive) y ranges, which we precomputed.
+            Then, if the current \(y\) value does fit inside a segment, we calculate the \(x\) value of that segment at the current \(y\) value.
+            While iterating through the valid segments, we track the minimum and maximum x-intersection values we encounter.
+            We'll call these \(x_{left}\) and \(x_{right}\), respectively.
+            Note that we actually subtract or add the absolute value of the segment's slope when calculating the left and right x positions to ensure we don't miss any partial-pixels when supersampling later on.
+            There's also some special logic to handle horizontal lines, which could otherwise result in a division by zero.
+            For my implementation, I just added a parallel array of booleans to track which lines are horizontal, and added some extra logic for handling their contributions to the maximum/minimum x search.
+            Once we've checked all 3 of the triangle's sides, we proceed by iterating over the x-axis from \(x_{left}\) to \(x_{right}\).
+        </p>
+        <p>
+            At this point, the algorithm proceeds as above, checking if each (x,y) pair is in the triangle or not. 
+            While we could almost skip this step, the additional x width added for supersampling requires that we still perform this check.
+            Now, for the results. I used <code>basic/test3.svg</code> as the test graphic to render, since it seemed reasonably complicated.
+            <div style="display: flex; flex-direction: column; align-items: center;">
+                <table style="width: 100%; text-align: center; border-collapse: collapse;">
+                  <tr>
+                    <td style="text-align: center;">
+                      <img src="unoptimized_raster_times.png" width="400px"/>
+                      <figcaption>Unoptimized Test Times</figcaption>
+                    </td>
+                    <td style="text-align: center;">
+                      <img src="optimized_raster_times.png" width="400px"/>
+                      <figcaption>Optimized Test Times</figcaption>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="text-align: center;">
+                      <img src="unoptimized_test3.png" width="400px"/>
+                      <figcaption>Unoptimized Render</figcaption>
+                    </td>
+                    <td style="text-align: center;">
+                      <img src="optimized_test3.png" width="400px"/>
+                      <figcaption>Optimized Render</figcaption>
+                    </td>
+                  </tr>
+                </table>
+            </div>
+        </p>
+        <p>
+            As we can clearly see from these results, not having to check all of the blank spaces surrounding a triangle in its bounding box offers a significant speed improvement.
+            This only becomes more important with increased supersampling levels, since we have to check many more points.
+        </p>
+
 		<h2>Task 2: Antialiasing by Supersampling</h2>
         <p>
             While the previous rasterization algorithm does a decent job of rendering the triangle's shape, there are notable sampling artifacts.
@@ -133,7 +189,12 @@
             I also changed the colors to blue and gold, since that seemed much more appropriate than red.
         </p>
         
-        <img src="robot.png" alt="Jumping Robot" style="width:50%"/>
+		<figure>
+			<img src="robot.png" alt="Jumping Robot" style="width:50%"/>
+			<figcaption>Jumping Robot</figcaption>
+		</figure>
+
+        
 
 		<h2>Task 4: Barycentric coordinates</h2>
         <p>
