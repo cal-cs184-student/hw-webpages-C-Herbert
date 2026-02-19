@@ -265,7 +265,40 @@
             Note that, when implementing the texture sampling functions, we have to scale provided u,v coordinates by the texture's width and height, respectively, as the u,v coordinates are provided in a normalized format.
         </p>
 
-        (IMAGES)
+        <div style="display: flex; flex-direction: column; align-items: center;">
+            <table style="width: 100%; text-align: center; border-collapse: collapse;">
+              <tr>
+                <td style="text-align: center;">
+                  <img src="nearest_1.png" width="400px"/>
+                  <figcaption>Nearest-Neighbor, 1 Sample</figcaption>
+                </td>
+                <td style="text-align: center;">
+                  <img src="nearest_16.png" width="400px"/>
+                  <figcaption>Nearest-Neighbor, 16 Samples</figcaption>
+                </td>
+              </tr>
+              <tr>
+                <td style="text-align: center;">
+                  <img src="bilinear_1.png" width="400px"/>
+                  <figcaption>Bilinear, 1 Sample</figcaption>
+                </td>
+                <td style="text-align: center;">
+                  <img src="bilinear_16.png" width="400px"/>
+                  <figcaption>Bilinear, 16 Samples</figcaption>
+                </td>
+              </tr>
+            </table>
+        </div>
+
+        <p>
+           From these results, we can see that bilinear sampling produces a smoother image much faster than nearest-neighbor sampling.
+           Even with 16 samples, the nearest-neighbor sampling approach has a 'sharper' appearance, with larger color steps between neighboring pixels.
+           Yet, bilinear sampling achieves softer results with fewer samples.
+           This difference is most visible when a texture is magnified to the point where pixels are clearly distinct, as in the pixel inspector. 
+           That is, when a single pixel of the sampled texture covers many screen pixels, the difference becomes most apparent.
+           This is because nearest-neighbor sampling doesn't do anything to smooth these boundries, instead keeping all high frequencies initially present in the texture.
+           In contrast, bilinear sampling's linear interpolation acts as a blurring filter on each sample it takes, eliminating some of the higher frequencies and smoothing the boundries of the texture's pixels.
+        </p>
 
 		<h2>Task 6: "Level Sampling" with mipmaps for texture mapping</h2>
         <p>
