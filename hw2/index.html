@@ -93,10 +93,12 @@
         <p>
             To implement the edge flip operation, I began by carefully plotting out which elements of the 'before' mesh would correspond to those of the 'after' mesh.
             While I initially did this with pen and paper, I've included a cleaned up diagram to convey the mapping I used:
-            <figure>
-                <img src="FlipDiagram.png" width="800px"/>
-                <figcaption>Element mapping.</figcaption>
-            </figure>
+        </p>
+        <figure>
+            <img src="FlipDiagram.png" width="600px"/>
+            <figcaption>Flip element mapping.</figcaption>
+        </figure>
+        <p>
             With this diagram in hand, and a list of the fields contained in each data type, I traced out what relations would need to be updated.
             I started with the halfedges, treating 'i' as the given edge and defining every other halfedge in terms of <code>next</code> and <code>twin</code> operations on 'i'. 
             With the halfedges defined, I was then able to pick which halfedges I would assign to the vertices, edges, and faces after applying the operation, completing the mapping.
@@ -105,10 +107,13 @@
             Once I had double checked everything, implementing the operation as code was actually quite straightforward. 
             Essentially, we just define variables for each element in the mapping, then apply the depicted relationships to the halfedges.
             Once the halfedges are done, we update the halfedge references in each face, as well as those of the vertices.
-            Note that, with the above mapping, we don't actually have to update the edges, thus, we're done. 
-            For this operation, I specifically wanted to avoid the <code>setNeighbors()</code> function, since I felt the above plan was complete enough to produce a cleaner set of individual pointer updates.
+            The exact halfedge assignments for the faces and vertices can be chosen arbitrarily, so long as they fit the given specifications.
+            Note that, with the above mapping, we don't actually have to update the edges, thus, we're done at this point. 
+            For this operation, I specifically wanted to avoid the <code>setNeighbors()</code> function, since I felt the above plan was complete enough to produce a cleaner set of individual field updates.
             Thankfully, this turned out to be true, and there was little to no debugging for this part.
         </p>
+
+        TODO: Screenshots
 
 		<h3>Part 5: Edge split</h3>
         <p>
@@ -116,8 +121,38 @@
             However, having to create new elements added some complexity, and lead me to go with an approach that simply applies <code>setNeighbors()</code> to every element, thus ensuring no update is missed.
             First, I began with a mapping, as in Part 4.
             Though, this time I labeled the before and after halfedges with completely different schemes, only later going back to establish which elements were equivalent.
-            
         </p>
+        <figure>
+            <img src="SplitDiagram.png" width="600px"/>
+            <figcaption>Split element mapping.</figcaption>
+        </figure>
+        <p>
+            Once I made the diagram, I established which elements would be equivalent in the mapping, to minimize the number of new elements I'd have to create.
+            First, for the halfedges, I opted to let 'i' be the halfedge of the given edge again.
+            Then, I made the following mappings:
+            \[ i=1,x=4,k=3,y=5,j=8,z=12, f_1=f_1, f_2=f_2\]
+            With these mappings, I was done with the planning phase.
+            For the actual implementation, we again started by defining variables for every depicted element, using <code>next</code> and <code>twin</code> to move according to relative element relationships.
+            Here, we have to create new halfedges for \(2,6,7,9,10,11\), since they have no equivalent.
+            Additionally, vertex \(e\) must be created at this point.
+            We calculate its position using a linear interpolation between \(a\) and \(b\), with \(t=0.5\)
+            Next, we apply the mapping, updating the halfedges and their relations to match the the diagram.
+            This was the most tedious step, as it involved carefully writing out the inputs to many <code>setNeighbors()</code> calls.
+            Though, having the diagram allowed me to avoid any critical mistakes.
+        </p>
+        <p>
+            Thankfully, with the halfedge relations updated, we only have to update the remaining vertices, edges, and faces.
+            First, we need 3 new edges, for the edges within the initial 2 triangles.
+            To be safe, I opted to reassign all the edges an appropriate halfedge from \([1,12]\), though a better implementation could proably avoid some reassignments along the outside edges.
+            Since we've already created and positioned \(e\), all we have to do for the vertices is pick an outgoing halfedge for each one, and update their fields.
+            Finally, there's the faces, for which we can pick any of their 3 'internal' halfedges.
+        </p>
+        <p>
+            Again, thanks to the careful planning, I didn't really have to do any debugging, and the operation seems to work perfectly.
+            Though, I did not handle the boundary edges case, which presents some room for improvement.
+        </p>
+
+        TODO: Screenshots
 
 		<h3>Part 6: Loop subdivision for mesh upsampling</h3>
 		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
