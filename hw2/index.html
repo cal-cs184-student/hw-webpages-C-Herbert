@@ -38,18 +38,28 @@
 		
 		Link to GitHub repository: (TODO) <a href="https://cs184.eecs.berkeley.edu/sp25">cs184.eecs.berkeley.edu/sp25</a>
 
-		<figure>
-			<img src="teapot.png" alt="Teapot" style="width:50%"/>
-			<figcaption>You can add images with captions!</figcaption>
-		</figure>
-
 		<!--
 		We've already added one heading per part, to make your write-up as navigable when grading. Please fit your write-up within these sections!
 		-->
 
 		<h2>Overview</h2>
-		Give a high-level overview of what you implemented in this homework. Think about what you've built as a whole. Share your thoughts on what interesting things you've learned from completing the homework.
-
+        <p>
+        Overall, my work for this assignment focused on mesh representations and techniques for modifying them.
+        Starting with de Casteljau's algorithm as a means to represent smooth curves and surfaces, the first 3 parts focused on techniques for representing abstract mesh data on the screen.
+        Part 3 introduced the halfedge data type as well as shading techniques, and was probably my favorite part of the assignment to work with.
+        I've used Blender for some hobby projects over the years, and the smooth shading option always impressed me with how little geometry it needed to make surfaces that appear smooth.
+        Finally getting to 'look behind the curtain' was a lot of fun, and I particularly appreciated how elegant the halfedge data type was.
+        Compared to dealing with the triangle-index representation in game engines, working with halfedges traversals felt much easier.
+        </p>
+        <p>
+        The later 3 parts of the assignment primarily felt like good practice for testing how well I understood the halfedge representation.
+        These parts involved implementing flipping, splitting, and subdivision operations using the halfedge representation.
+        For each of these problems, I started with a planning phase to carefully plot out an implementation before writing any code.
+        This phase generally consisted of defining elements with clear names and working out a mapping between them to accomplish the specified operation.
+        This careful planning paid off, though it made the coding feel very repetitive for parts 4 and 5, as these mostly consisted of writing out the relation updates I'd already planned out.
+        Of this section, the subdivision operation in part 6 was my favorite, as having to figure out the necessary traversals provided an interesting challenge.
+        </p>
+        
 		<h2>Section I: Bezier Curves and Surfaces</h2>
 
 		<h3>Part 1: Bezier curves with 1D de Casteljau subdivision</h3>
@@ -196,7 +206,20 @@
             Thankfully, this turned out to be true, and there was little to no debugging for this part.
         </p>
 
-        TODO: Screenshots
+        <div style="display: flex; flex-direction: column; align-items: center;">
+			<table style="width: 100%; text-align: center; border-collapse: collapse;">
+			  <tr>
+				<td style="text-align: center;">
+				  <img src="tp_pre_flip.png" width="400px"/>
+				  <figcaption>No flips.</figcaption>
+				</td>
+				<td style="text-align: center;">
+				  <img src="tp_post_flip.png" width="400px"/>
+				  <figcaption>Various flipped edges.</figcaption>
+				</td>
+            </tr>
+			</table>
+		</div>
 
 		<h3>Part 5: Edge split</h3>
         <p>
@@ -234,25 +257,131 @@
             Again, thanks to the careful planning, I didn't really have to do any debugging, and the operation seems to work perfectly.
             Though, I did not handle the boundary edges case, which presents some room for improvement.
         </p>
-
-        TODO: Screenshots
+        <div style="display: flex; flex-direction: column; align-items: center;">
+			<table style="width: 100%; text-align: center; border-collapse: collapse;">
+			    <tr>
+                    <td style="text-align: center;">
+                        <img src="tp_pre_split.png" width="400px"/>
+                        <figcaption>No splits.</figcaption>
+                    </td>
+                    <td style="text-align: center;">
+                        <img src="tp_post_split.png" width="400px"/>
+                        <figcaption>Various splits.</figcaption>
+                    </td>
+                    <td style="text-align: center;">
+                        <img src="tp_post_split_flipped.png" width="400px"/>
+                        <figcaption>Split and flipped.</figcaption>
+                    </td>
+                </tr>
+			</table>
+		</div>
 
 		<h3>Part 6: Loop subdivision for mesh upsampling</h3>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-
-		<h2>(Optional) Section III: Potential Extra Credit - Art Competition: Model something Creative</h2>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-
-		<h2>Additional Notes (please remove)</h2>
-		<ul>
-			<li>You can also add code if you'd like as so: <code>code code code</code></li>
-			<li>If you'd like to add math equations, 
-				<ul>
-					<li>You can write inline equations like so: \( a^2 + b^2 = c^2 \)</li>
-					<li>You can write display equations like so: \[ a^2 + b^2 = c^2 \]</li>
-				</ul>
-			</li>
-		</ul>
+        <p>
+        For this part, I followed the recommended steps to implement the subdivision operation.
+        I began by calculating the new positions for each of the existing vertices.
+        This was done by nesting the neighbor iteration from part 3 in a simple loop over all the mesh's vertices.
+        Though, instead of the weighted normal calculation, the inner iteration calculates the weighted position contribution of each neighbor and adds it to a total, which is then assigned to the vertex's <code>newPosition</code>.
+        </p>
+        <p>
+        Next, the new vertex positions are calculated by iterating over the current edges.
+        This calculation follows the provided \([1/8,3/8,3/8,1/8]\) weighting of the surrounding vertex positions, and is saved to the <code>newPosition</code> of the edge.
+        The third step is to split the edges.
+        This was the most challenging step, as I had to figure out how not to iterate over any new edges.
+        In the end, I opted to use a for loop to increment the <code>mesh.edgesBegin()</code> iterator a number of times equal to the number of edges present before starting the loop.
+        Since all new edges are added to the end of the list edge list, this ensures that we traverse exactly the set of 'old' edges.
+        </p>
+        <p>
+        However, edge iteration was not the only challenge caused by this step.
+        The second issue was marking which edges should be new or old.
+        While the split produces 4 'internal' edges between the two initial triangles, two of them should be marked as 'old', and the other two should be 'new'.
+        I decided to implement this by first caching the two vertices of the edge being split.
+        Then, after the split, I iterated over the neighboring edges of the new vertex, marking any that landed on the cached vertices as 'old', and any that didn't, as 'new'.
+        Also, during the outer edge iteration, I update the position of new vertices using the saved <code>newPosition</code> of the edge.
+        </p>
+        <p>
+        Having already setup the <code>newPosition</code> and <code>isNew</code> fields, the remaining steps were straightforward.
+        I simply flip any 'new' edge that lays between old and new vertices with a basic edge iteration.
+        Then, I update the position of any old vertices with another basic iteration over the mesh's vertices.
+        </p>
+        <h3>Subdivision Analysis</h3>
+        <div style="display: flex; flex-direction: column; align-items: center;">
+			<table style="width: 100%; text-align: center; border-collapse: collapse;">
+			  <tr>
+				<td style="text-align: center;">
+				  <img src="tp_div0.png" width="400px"/>
+				  <figcaption>0 Subdivisions.</figcaption>
+				</td>
+				<td style="text-align: center;">
+				  <img src="tp_div1.png" width="400px"/>
+				  <figcaption>1 Subdivision.</figcaption>
+				</td>
+                <td style="text-align: center;">
+                    <img src="tp_div2.png" width="400px"/>
+                    <figcaption>2 Subdivisions.</figcaption>
+                  </td>
+			  </tr>
+			</table>
+		</div>
+        <p>
+        From the above images, we can clearly see that sharp edges are quickly smoothed by the subdivision operation, even when we may not want this to happen.
+        With other models, such as a basic cube, this becomes apparent even faster.
+        Below, I've demonstrated one way to preserve a sharp edge by pre-splitting surrounding edges:
+        </p>
+        <div style="display: flex; flex-direction: column; align-items: center;">
+			<table style="width: 100%; text-align: center; border-collapse: collapse;">
+			  <tr>
+				<td style="text-align: center;">
+				  <img src="cube_no_split.png" width="400px"/>
+				  <figcaption>No pre-splittng, 0 subdivisions.</figcaption>
+				</td>
+				<td style="text-align: center;">
+				  <img src="cube_no_split_div2.png" width="400px"/>
+				  <figcaption>No pre-splittng, 2 subdivisions.</figcaption>
+				</td>
+            </tr>
+            <tr>
+				<td style="text-align: center;">
+				  <img src="cube_pre_split.png" width="400px"/>
+				  <figcaption>Pre-split, 0 Subdivisions.</figcaption>
+				</td>
+				<td style="text-align: center;">
+				  <img src="cube_pre_split_div3.png" width="400px"/>
+				  <figcaption>Pre-split, 3 Subdivisions.</figcaption>
+				</td>
+            </tr>
+			</table>
+		</div>
+        <p>
+        By carefully splitting and flipping edges, we can create many smaller faces around sharp corners without changing the actual surface.
+        Having all of these small faces surround the edge means the weighted average of the subdivision will draw from vertices with a position similar to those of the edge itself, rather than those on the opposite side of the cube.
+        Thus, the edge remains sharper, even at higher subdivision levels.
+        This can be clearly seen in the above images, where the front, top edges of the cube remain sharp, while the others get smoothed out.
+        </p>
+        <p>
+        Another thing to note is the asymmetry of the smoothing on the cube. 
+        This is because the cube's vertices have different degrees, and share edges with neighbors at different distances.
+        A vertex with a high degree of far away neighbors will be quickly smoothed, while one with fewer, closer neighbors will be smoothed less rapidly.
+        This effect is a direct result of the averaging algorithm used, and can be avoided by making the vertex degrees and neighbor spacing symmetrical, as seen below:
+        </p>
+        <div style="display: flex; flex-direction: column; align-items: center;">
+			<table style="width: 100%; text-align: center; border-collapse: collapse;">
+			    <tr>
+                    <td style="text-align: center;">
+                        <img src="cube_even_splits_div0.png" width="400px"/>
+                        <figcaption>Even pre-splits, 0 subdivisions.</figcaption>
+                    </td>
+                    <td style="text-align: center;">
+                        <img src="cube_even_splits_div1.png" width="400px"/>
+                        <figcaption>Even pre-splits, 1 subdivision.</figcaption>
+                    </td>
+                    <td style="text-align: center;">
+                        <img src="cube_even_splits_div3.png" width="400px"/>
+                        <figcaption>Even pre-splits, 3 subdivisions.</figcaption>
+                    </td>
+                </tr>
+			</table>
+		</div>
 		</div>
 	</body>
 </html>
