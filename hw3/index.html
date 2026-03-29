@@ -48,7 +48,29 @@
 		Give a high-level overview of what you implemented in this homework. Think about what you've built as a whole. Share your thoughts on what interesting things you've learned from completing the homework.
 
 		<h2>Part 1: Ray Generation and Scene Intersection</h2>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+		<h3>Ray Generation</h3>
+        <p>
+        To actually ray trace anything, we first need to be able to generate camera rays.
+        These rays will sample the scene and correspond to the pixels they pass through on the screen.
+        For the implementation, we begin with the <code>generate_ray</code> function, which takes in normalized screen coordinates (x and y).
+        Note that these coordinates are independent of the render's field of view (FOV) and range from 0 to 1, so we need to convert them to something more useful.
+        To do this, my implementation begins by converting the FOV parameters to distance units on the camera's sensor plane.
+        Specifically, I calculate the <code>tan</code> of half of each axis' respective FOV parameter.
+        Since the camera is located a distance of 1 away from the sensor plane, the <code>tan</code> calculation yields the x/y-offset on the sensor plane for any input angle.
+        Dividing the FOV parameter by 2 gives us the maximum x/y-offset off either 'side' of the camera.
+        In other words, this calculation gives us the absolute value of the maximum x/y extents of any possible sample location on the sensor plane.
+        </p>
+        <p>
+        With these extents in hand, we can calculate the sensor plane coordinates of the screen point as a simple linear interpolation.
+        For the x-axis, if we call the absolute extent '<code>a</code>'', the calculation is as follows:
+        \[x_{sensor} = -a + (2 * a * x_{input})\]
+        The y axis calculation is the same, though it uses its own extent and input values.
+        We know the z-coordinate will be -1, since this is the definition of the sensor plane.
+        Thus, we have the sensor coordinates of our chosen point.
+        To generate the direction of the world-space ray, we treat the sensor coordinate as a vector, find its unit direction, and convert it to world-space using the camera's camera-to-world matrix.
+        Finally, we return a ray with this direction originating from the camera's position.
+        </p>
+        <h3>Primitive Intersection</h3>
 
 		<p>Here is an example 2x2 gridlike structure using an HTML table. Each <b>tr</b> is a row and each <b>td</b> is a column in that row. You might find this useful for framing and showing your result images in an organized fashion.</p>
 		<div style="display: flex; flex-direction: column; align-items: center;">
@@ -167,8 +189,8 @@
         This ray is then tested against the scene's primitives, and, if it intersects any of them, we evaluate its zero-bounce radiance and proceed with the relfection equation.
         </p>
         <p>
-        The reflection equation is calculated as follows:
-        \[ \frac{(f * zero\_bounce\_radiance * cos(\theta_{w\_in}))}{pdf} \]
+        The indivdual terms of the sum are calculated using the following equation, which is itself a portion of the Monte-Carlo approximation of the reflection equation:
+        \[\frac{(f * zero\_bounce\_radiance * cos(\theta_{w\_in}))}{pdf} \]
         Note that \(\theta_{w\_in}\) is taken in object-space, with respect to the z-axis. The algorithm then adds the result of this equation to a running total of all sample radiances.
         Once all samples are taken, the total radiance is divided by the number of samples to get the average result.
         This is then returned by the function.
@@ -198,20 +220,49 @@
         Then, once the aggregate radiance is computed, we divide by the total number of samples, and return the result.
         </p>
         <h3>BSDF vs. BRDF</h3>
-        Figuring out why the the division by \(\pi\) needs to occur took significant effort on my part, as I feel 'what' a BSDF is and how it relates to the BRDF could've been explained better.
+        Figuring out why the the division by \(\pi\) needs to occur took significant effort on my part, as I feel 'what' a BSDF is and how it relates to the BRDF could've been explained/hinted at better.
         I initially stumbled upon the term after trying to make my own over-exposed results look like the provided examples.
         While this produced good results, I still wanted a mathematical explanation.
         Thus, I began by determing the units of the BSDF and how they compared to the BRDF's own units.
         As it turns out, assuming the BSDF shares its units with reflectance, which is the specified return value, the BSDF and BRDF have different units.
         Per Wikipedia's definition of reflectance (SOURCE?), the BSDF is a ratio of radiances, while the course slides specify the BRDF as being a ratio of outgoing radiance to incoming irradiance.
         Writing out the relationship between irradiance and radiance, we have:
-        \[E = \int_S L \cdot \cos(\theta)\]
+        \[E = \int_S L \cdot \cos(\theta) d\omega\]
         Thankfully, due the the assumption that our surfaces are Lambertian, \(L\) is constant, and we just have to integrate cosine over a unit sphere.
         This yields \(E = \pi \cdot L\), explaining the extra \(\pi\) term. 
 
 		<h2>Part 4: Global Illumination</h2>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-
+        <p>
+		Most of the global illumination implementation takes place in the <code>at_least_one_bounce_radiance</code> function.
+        This function takes in a ray along with its intersection data, and calculates the result of <code>max_ray_depth</code> bounces of light.
+        First, the function calls <code>one_bounce_radiance</code> to sample the one-bounce radiance at the hit point on the reflecting surface.
+        This gives us the direct lighting for the hit point.
+        </p>
+        <p>
+        Next, we need to pick a direction for the next bounce sample, <code>w_in</code>.
+        This is done by calling <code>sample_f</code> on the reflecting surface's BSDF, which gives us an incoming direction
+        This function call also returns the BSDF value for the reflecting surface, and the PDF value for the direction sample, both of which we store for later.
+        Though, before saving the BSDF's value, we divide the it by \(\pi\) to produce a BRDF result, labeled <code>f</code>.
+        </p>
+        <p>
+        We can now setup the next ray for a recursive call to <code>at_least_one_bounce_radiance</code>.
+        This ray will originate at the hit point, and head in a direction determined by <code>w_in</code> transformed to world-space, since <code>sample_f</code> produces an object-space direction.
+        We define world-space and object space as in Part 3, and use the same normal-aligned z-axis definition for the transformation matrix.
+        To ensure that recursive eventually terminates, we assign the next ray a depth one less than the depth of the current iteration's ray.
+        Finally, to prevent the next ray from hitting the reflecting surface, we assign it a <code>min_t</code> of <code>EPS_F</code>.
+        </p>
+        <p>
+        The algorithm is now ready to make the recursive <code>at_least_one_bounce_radiance</code> call.
+        However, we only recurse if the 'next' ray's depth is greater than zero, since recursion means we'll cast rays one level deeper than the current 'next'. 
+        If this condition is satified, the recursive call is made, and we calculate the bounce's contribution to the overall radiance using the reflection equation.
+        Since we're only dealing with one sample, we drop the summation in the equation.
+        Additionally, \(\cos(\theta)\) is instead calculated as the dot product of world-space <code>w_in</code> and the initial intersection's normal.
+        Thus, the final equation is as follows:
+        \[\frac{f * at\_least\_one\_bounce\_radiance * (w\_in_{world} \cdot norm_{surface})}{pdf} \]
+        Once calculated, the result is added to the direct lighting result and returned.
+        If <code>isAccumBounces</code> is <code>false</code>, just the indirect result is returned.
+        </p>
+        
 		<h2>Part 5: Adaptive Sampling</h2>
 		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
 
