@@ -78,29 +78,136 @@
 		
 		<h2>Part 2: Bounding Volume Hierarchy</h2>
 		<p>
-		To construct the scene Bounding Volume Hierarchy (BVH), I opted to use a recursive function which splits the existing set of objects into two subsets, until only <code>max_leaf_size</code> primitives exist in the subset.
+		To construct the scene Bounding Volume Hierarchy (BVH), I opted to use a recursive function which splits the existing set of objects into two subsets, until the input consists of at most <code>max_leaf_size</code> primitives.
 		The algorithm for this function begins by iterating over the provided set of primitives, expanding a bounding box to include each encountered primitive.
 		Once the iteration is completed, we have a bounding box that encompasses every primitive in the intial set, which is assigned to the current BVH node.
-		Additionally, the algorithm calculates the maximum and minimum centroid coordinates along each axis during this iteration.
+		Additionally, during this iteration, the algorithm calculates the maximum and minimum centroid coordinates along each axis, which will be used later.
 		</p>
 		<p>
 		Next, we want to choose a scheme that divides the set of primitives into two sets of roughly equal size.
 		For this implementation, I opted to use the axes extents from the first iteration to choose a dividing axis.
 		The dividing axis is chosen by selecting the axis with the greatest range between its maximum and minimum centroid coordinates.
-		Then, the midpoint of this axis range is used to sort the primitives into two subsets.
-		While this won't always give a perfectly balanced split, it works reasonably well, and runs quickly with little memory overhead.
-		One advantage of this approach is that outliers are quickly placed in their own bounding box, minimizing empty space and thereby improving intersection testing.
+		Then, the midpoint of the range along this axis is used to sort the primitives into two subsets.
+		While this won't always give a perfectly balanced split, it works reasonably well, and runs in linear time with little memory overhead.
+		One advantage of this approach is that outliers are quickly placed into their own bounding box, reducing the amount of empty space in future bounding boxes and thereby improving intersection testing.
 		However, constraining the algorithm to axis-aligned splits means we might miss out on splits that more evenly divide the set.
 		</p>
 		<p>
 		Once the midpoint is calculated, the algorithm finishes by iterating over the primitives once more, this time assigning each a subset based on the centroid's relation to the axis midpoint. 
-		This leaves us with two sets, on which we recursively call the function.
+		Primitives with centroids having a coordinate along the chosen axis that is less than the midpoint are assigned to the 'left' subset, while the rest go to the 'right' subset.
+        This leaves us with two sets, on which we recursively call the function.
+        Since we use the maximum range to chose an axis, and the average of the range to divide the axis, we should always have at least 1 primitive in each set, assuming centroids don't overlap.
+        This means the recursion eventually ends, as we never produce an empty subset when splitting.
 		</p>
-
-
+        <p>
+        TODO: BVH iterators?
+        </p>
+        <h3> Bounding Volume Hierarchy - Examples </h3>
+        <div style="display: flex; flex-direction: column; align-items: center;">
+			<table style="width: 100%; text-align: center; border-collapse: collapse;">
+			  <tr>
+				<td style="text-align: center;">
+				  <img src="images/bvh/max_planck_bvh.png" width="400px"/>
+				  <figcaption>'Max Planck' - 50,801 Primitives</figcaption>
+				</td>
+				<td style="text-align: center;">
+				  <img src="images/bvh/dragon_bvh.png" width="400px"/>
+				  <figcaption>'Dragon' - 105,210 Primitives</figcaption>
+				</td>
+                <td style="text-align: center;">
+                    <img src="images/bvh/beast_bvh.png" width="400px"/>
+                    <figcaption>'Beast' - 64,618 Primitives</figcaption>
+                  </td>
+			  </tr>
+			</table>
+		</div>
+        <h3> Bounding Volume Hierarchy - Runtime Comparison </h3>
+        <div style="display: flex; flex-direction: column; align-items: center;">
+			<table style="width: 100%; text-align: center; border-collapse: collapse;">
+			  <tr>
+				<td style="text-align: center;">
+				  <img src="images/bvh/max_planck_bvh.png" width="400px"/>
+				  <figcaption>Runtime with BVH: Runtime without:</figcaption>
+				</td>
+			  </tr>
+			</table>
+		</div>
 
 		<h2>Part 3: Direct Illumination</h2>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+        To implement direct illumination, we may consider several potential sampling implementations.
+        These determine the directions in which we'll send secondary bounce rays when evaluating the radiance at a point.
+        Two such implementations are detailed below:
+
+		<h3>Hemisphere Sampling</h3>
+        <p>
+        For hemisphere sampling, we simply send rays out from the initial hit point in directions distributed uniformly over a hemisphere aligned with the surface normal.
+        My implementation begins by determining the hit point from the ray and intersection information provided to the <code>estimate_direct_lighting_hemisphere</code> function.
+        I also calculate a transformation matrix which takes coordinates from world space to a space with the Z-axis aligned with the hit surface's normal, henceforth known as 'object space'.
+        Lastly, the object-space outgoing direction is calculated by inverting the incident ray's direction, and applying the previous matrix.
+        </p>
+        <p>
+        With the initial calculations completed, my implementation proceeds by iterating over the following steps until <code>num_samples</code> samples are taken.
+        First, an incoming direction is chosen.
+        To sample directions uniformly over the normal-aligned hemisphere, <code>hemisphereSampler</code>'s <code>get_sample()</code> function is used.
+        This function works by selecting a phi between 0 and 360 degrees, with a uniform distribution, and a theta betwen 0 and 90 degrees, with a cosine distribution.
+        These angles are then converted to a unit vector, and used for the rest of the algorithm as '<code>w_in</code>', the sampled incoming direction.
+        The probability density function for this sampling method is a uniform \( 1/(2*\pi) \), since the solid-angle area of a hemisphere is \(2*\pi\) steradians.
+        This PDF is referred to as <code>pdf</code> in the reflection equation.
+        </p>
+        <p>
+        Next, we use the intersection information from the initial ray (outgoing, by our conventions) to sample the surface's Bidirectional Scattering Distribution Function (BSDF) with our outgoing and incoming directions.
+        This function determines how the incoming colors of light will be reflected along the outgoing ray.
+        Here, we must divide the result by \(\pi\) to produce a term I'll refer to as <code>f</code> in the rest of this explanation.
+        While I provide a full explanation in its own section, the additional \(\pi\) term converts the BSDF of the surface to a Bidirectional Reflection Distribution Function (BRDF), which is expected by a later equation.
+        </p>
+        <p>
+        The last value we need before plugging everything into the reflection equation is the actual radiance of the surface 'producing' the incoming ray.
+        This is found by constructing a ray originating at the hit point with a direction determined by converting the sampled incoming direction back to world space.
+        To prevent this new ray from intersecting the reflecting surface, we assign it a <code>min_t</code> value of <code>EPS_F</code>.
+        This ray is then tested against the scene's primitives, and, if it intersects any of them, we evaluate its zero-bounce radiance and proceed with the relfection equation.
+        </p>
+        <p>
+        The reflection equation is calculated as follows:
+        \[ \frac{(f * zero\_bounce\_radiance * cos(\theta_{w\_in}))}{pdf} \]
+        Note that \(\theta_{w\_in}\) is taken in object-space, with respect to the z-axis. The algorithm then adds the result of this equation to a running total of all sample radiances.
+        Once all samples are taken, the total radiance is divided by the number of samples to get the average result.
+        This is then returned by the function.
+        </p>
+
+        <h3>Light Sampling</h3>
+        <p>
+        Light sampling mostly follows the above hemisphere implementation, with a notable exception in how it chooses incoming directions.
+        Thus, I'll just be focusing on these differences.
+        For this sampling method, we only sample directions which point towards a light in the scene.
+        Since all other directions can't contribute to the radiance sum without additional bounces, this sampling method is much more efficient than hemisphere sampling when producing comparable results.
+        </p>
+        <p>
+        To incorporate these changes into the above hemisphere sampling algorithm, we begin by replacing the fixed-count sample iteration with an iteration over the scene's light sources.
+        Each of these sources are sampled up to <code>ns_area_light</code> times, though point lights are only sampled once and given a proportional weight increase in the average, as they can only produce 1 result.
+        For each of the inner iterations, we choose <code>w_in</code> using the light's <code>sample_L</code> function.
+        Here, <code>sample_L</code> gives us a distribution of incoming directions over the light's surface.
+        This function also gives us the zero-bounce radiance of the light, and the <code>pdf</code> value associated with <code>w_in</code>, which are used in the reflection equation as before.
+        However, this function doesn't check for scene intersections, so we still need to perform our own check and discard the sample if something is blocking the light source.
+        This check calculates the incoming ray exactly as in the hemisphere sampling case, though it does have a early exit for light sources behind the reflecting surface.
+        The early exit is checked by calculating the dot product of <code>w_in</code> and the incoming ray's direction.
+        If the product is less than zero, the sample contributes zero to the sum, and is skipped.
+        </p>
+        <p>
+        From here, we simply apply the reflection equation using the BRDF of the reflecting surface.
+        Again, we find the BRDF by dividing the surface's BSDF sample by \(\pi\).
+        Then, once the aggregate radiance is computed, we divide by the total number of samples, and return the result.
+        </p>
+        <h3>BSDF vs. BRDF</h3>
+        Figuring out why the the division by \(\pi\) needs to occur took significant effort on my part, as I feel 'what' a BSDF is and how it relates to the BRDF could've been explained better.
+        I initially stumbled upon the term after trying to make my own over-exposed results look like the provided examples.
+        While this produced good results, I still wanted a mathematical explanation.
+        Thus, I began by determing the units of the BSDF and how they compared to the BRDF's own units.
+        As it turns out, assuming the BSDF shares its units with reflectance, which is the specified return value, the BSDF and BRDF have different units.
+        Per Wikipedia's definition of reflectance (SOURCE?), the BSDF is a ratio of radiances, while the course slides specify the BRDF as being a ratio of outgoing radiance to incoming irradiance.
+        Writing out the relationship between irradiance and radiance, we have:
+        \[E = \int_S L \cdot \cos(\theta)\]
+        Thankfully, due the the assumption that our surfaces are Lambertian, \(L\) is constant, and we just have to integrate cosine over a unit sphere.
+        This yields \(E = \pi \cdot L\), explaining the extra \(\pi\) term. 
 
 		<h2>Part 4: Global Illumination</h2>
 		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
