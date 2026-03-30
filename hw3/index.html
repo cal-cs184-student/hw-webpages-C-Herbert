@@ -240,6 +240,86 @@
         Thankfully, due the the assumption that our surfaces are Lambertian, \(L\) is constant, and we just have to integrate cosine over a unit sphere.
         This yields \(E = \pi \cdot L\), explaining the extra \(\pi\) term. 
 
+        <h3> Direct Illumination - Hemisphere vs. Importance Sampling</h3>
+        <p>All images were rendered with 32 light rays.</p>
+        <div style="display: flex; flex-direction: column; align-items: center;">
+			<table style="width: 100%; text-align: center; border-collapse: collapse;">
+                <tr>
+                    <td style="text-align: center;">
+                        <img src="images/di/di_hemi_bunny4.png" width="400px"/>
+                        <figcaption>Hemisphere Sampling, 4 Samples</figcaption>
+                    </td>
+                    <td style="text-align: center;">
+                        <img src="images/di/di_light_bunny4.png" width="400px"/>
+                        <figcaption>Importance Sampling, 4 Samples</figcaption>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="text-align: center;">
+                        <img src="images/di/di_hemi_bunny16.png" width="400px"/>
+                        <figcaption>Hemisphere Sampling, 16 Samples</figcaption>
+                    </td>
+                    <td style="text-align: center;">
+                        <img src="images/di/di_light_bunny16.png" width="400px"/>
+                        <figcaption>Importance Sampling, 16 Samples</figcaption>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="text-align: center;">
+                        <img src="images/di/di_hemi_bunny.png" width="400px"/>
+                        <figcaption>Hemisphere Sampling, 64 Samples</figcaption>
+                    </td>
+                    <td style="text-align: center;">
+                        <img src="images/di/di_light_bunny.png" width="400px"/>
+                        <figcaption>Importance Sampling, 64 Samples</figcaption>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="text-align: center;">
+                    <img src="images/di/di_hemi_spheres.png" width="400px"/>
+                    <figcaption>Hemisphere Sampling, 64 Samples</figcaption>
+                    </td>
+                    <td style="text-align: center;">
+                        <img src="images/di/di_light_spheres.png" width="400px"/>
+                        <figcaption>Importance Sampling, 64 Samples</figcaption>
+                    </td>
+                </tr>
+
+			</table>
+		</div>
+
+        <p>
+        Based on the above results, it seems that, for the same number of light samples, importance sampling produces renders with much less noise than uniform hemisphere sampling.
+        Indeed, even with as few as 4 samples per pixel, the importance sampled image looks relatively noise-free.
+        Contrast this with the hemisphere sampled image, which presents a lot of visual noise with even 16 samples per pixel.
+        </p>
+
+        <h3> Direct Illumination - Importance Light Sampling Results</h3>
+        <div style="display: flex; flex-direction: column; align-items: center;">
+			<table style="width: 100%; text-align: center; border-collapse: collapse;">
+			  <tr>
+				<td style="text-align: center;">
+				  <img src="images/di/di_l1_bunny.png" width="400px"/>
+				  <figcaption>1 Light ray</figcaption>
+				</td>
+                <td style="text-align: center;">
+                    <img src="images/di/di_l4_bunny.png" width="400px"/>
+                    <figcaption>4 Light rays</figcaption>
+                </td>
+			  </tr>
+              <tr>
+				<td style="text-align: center;">
+				  <img src="images/di/di_l16_bunny.png" width="400px"/>
+				  <figcaption>16 Light rays</figcaption>
+				</td>
+                <td style="text-align: center;">
+                    <img src="images/di/di_l64_bunny.png" width="400px"/>
+                    <figcaption>64 Light rays</figcaption>
+                </td>
+			  </tr>
+			</table>
+		</div>
+
 		<h2>Part 4: Global Illumination</h2>
         <p>
 		Most of the global illumination implementation takes place in the <code>at_least_one_bounce_radiance</code> function.
@@ -271,6 +351,8 @@
         Once calculated, the result is added to the direct lighting result and returned.
         If <code>isAccumBounces</code> is <code>false</code>, just the indirect result is returned.
         </p>
+        
+        (TODO: COMPARISON WRITEUP)
 
         <h3> Global Illumination - Gallery</h3>
         <div style="display: flex; flex-direction: column; align-items: center;">
@@ -418,22 +500,123 @@
 			</table>
 		</div>
 
+        <h3> Global Illumination - Sample rates with 4 light rays and max depth 100</h3>
+        <div style="display: flex; flex-direction: column; align-items: center;">
+			<table style="width: 100%; text-align: center; border-collapse: collapse;">
+			  <tr>
+				<td style="text-align: center;">
+				  <img src="images/rr/per_pixel_1_bunny.png" width="400px"/>
+				  <figcaption>1 Sample per pixel</figcaption>
+				</td>
+                <td style="text-align: center;">
+                    <img src="images/rr/per_pixel_2_bunny.png" width="400px"/>
+                    <figcaption>2 Samples per pixel</figcaption>
+                </td>
+			  </tr>
+              <tr>
+				<td style="text-align: center;">
+                    <img src="images/rr/per_pixel_4_bunny.png" width="400px"/>
+                    <figcaption>4 Samples per pixel</figcaption>
+                </td>
+                <td style="text-align: center;">
+                    <img src="images/rr/per_pixel_8_bunny.png" width="400px"/>
+                    <figcaption>8 Samples per pixel</figcaption>
+                </td>
+			  </tr>
+              <tr>
+				<td style="text-align: center;">
+                    <img src="images/rr/per_pixel_16_bunny.png" width="400px"/>
+                    <figcaption>16 Samples per pixel</figcaption>
+                </td>
+                <td style="text-align: center;">
+                    <img src="images/rr/per_pixel_64_bunny.png" width="400px"/>
+                    <figcaption>64 Samples per pixel</figcaption>
+                </td>
+			  </tr>
+              <tr>
+				<td style="text-align: center;">
+                    <img src="images/rr/per_pixel_256_bunny.png" width="400px"/>
+                    <figcaption>256 Samples per pixel</figcaption>
+                </td>
+                <td style="text-align: center;">
+                    <img src="images/rr/per_pixel_1024_bunny.png" width="400px"/>
+                    <figcaption>1024 Samples per pixel</figcaption>
+                </td>
+			  </tr>
+			</table>
+		</div>
+
 		<h2>Part 5: Adaptive Sampling</h2>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+        <p>
+        From the previous part, we can clearly see that more samples can greatly reduce the noise present in a render.
+        However, naively increasing the per-pixel sample rate for the entire image results in slow render times.
+        To avoid unecessarily sampling pixels that quickly converge, we have adaptive sampling.
+        </p>
+        <p>
+        Adaptive sampling works by using statistics to determine which pixels have sample values that are converging quickly.
+        Instead of applying the maximum number of samples to these pixels, adaptive sampling stops sampling a pixel once the samples have achieved the desired confidence interval.
+        Note that we still stop at the given maximum number of samples in the case the samples don't converge in time.
+        Thus, adaptive sampling allows us to 'save' samples on pixels that converge quickly, while still applying a full sampling pass to more complicated pixels.
+        </p>
+        <p>
+        For my implementation, I used the following criteria for convergence:
+        \[1.96 \cdot \frac{\sigma}{\sqrt{n}} \leq 0.05 \cdot \mu\]
+        Where \(\sigma\) and \(\mu\) are the standard deviation and average, respectively, of the samples so far.
+        Also, \(n\) is the total number of samples taken so far.
+        For the rest of this explanation, I'll refer to \(1.96 \cdot \frac{\sigma}{\sqrt{n}}\) as \(I\).
+        This implementation builds off the <code>raytrace_pixel</code> function.
+        In addition to the radiance sum, we'll now track the sum of sample illuminances and the sum of the squares of sample illuminances.
+        I'll label the former <code>illSum</code>, and the latter, <code>illSqrSum</code>.
+        These will be used to the check the convergence criteria periodically.
+        </p>
+        <p>
+        Instead of checking convergence with every sample, which would be inefficient, the convergence check only occurs once for every <code>samplesPerBatch</code> samples.
+        Though, we do update <code>illSum</code> and <code>illSqrSum</code> with each sample, using the <code>illum()</code> function on the sample's radiance to get the sample's illuminance.
+        When we do check convergence, the calculations are performed as follows:
+        \[\mu = \frac{illSum}{n}\]
+        \[\sigma^2 = \frac{1}{n-1} \cdot \left(illSqrSum - \frac{illSum^2}{n}\right)\]
+        \[I = 1.96 \cdot \sqrt{\frac{\sigma^2}{n}}\]
+        Then, the condition is checked using these values. 
+        If the convergence check passes, the loop responsible for sampling the pixel breaks, and the actual number of samples taken is recorded in <code>sampleCountBuffer</code>.
+        </p>
+        <div style="display: flex; flex-direction: column; align-items: center;">
+			<table style="width: 100%; text-align: center; border-collapse: collapse;">
+			  <tr>
+				<td style="text-align: center;">
+				  <img src="images/as/as_bunny.png" width="400px"/>
+				  <figcaption>Bunny, Adaptive Sampling</figcaption>
+				</td>
+                <td style="text-align: center;">
+                    <img src="images/as/as_bunny_rate.png" width="400px"/>
+                    <figcaption>Bunny, Sampling Rate Visual</figcaption>
+                </td>
+			  </tr>
+              <tr>
+				<td style="text-align: center;">
+                    <img src="images/as/as_spheres.png" width="400px"/>
+                    <figcaption>Spheres, Adaptive Sampling</figcaption>
+                </td>
+                <td style="text-align: center;">
+                    <img src="images/as/as_spheres_rate.png" width="400px"/>
+                    <figcaption>Spheres, Sampling Rate Visual</figcaption>
+                </td>
+			  </tr>
+              <tr>
+				<td style="text-align: center;">
+                    <img src="images/as/as_dragon.png" width="400px"/>
+                    <figcaption>Dragon, Adaptive Sampling</figcaption>
+                </td>
+                <td style="text-align: center;">
+                    <img src="images/as/as_dragon_rate.png" width="400px"/>
+                    <figcaption>Dragon, Sampling Rate Visual</figcaption>
+                </td>
+			  </tr>
+			</table>
+		</div>
+
 
 		<h2>(Optional) Part 6: Extra Credit Opportunities</h2>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-		
-		<h2>Additional Notes (please remove)</h2>
-		<ul>
-			<li>You can also add code if you'd like as so: <code>code code code</code></li>
-			<li>If you'd like to add math equations, 
-				<ul>
-					<li>You can write inline equations like so: \( a^2 + b^2 = c^2 \)</li>
-					<li>You can write display equations like so: \[ a^2 + b^2 = c^2 \]</li>
-				</ul>
-			</li>
-		</ul>
+        N/A
 		</div>
 	</body>
 </html>
