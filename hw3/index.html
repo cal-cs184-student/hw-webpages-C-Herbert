@@ -70,37 +70,46 @@
         To generate the direction of the world-space ray, we treat the sensor coordinate as a vector, find its unit direction, and convert it to world-space using the camera's camera-to-world matrix.
         Finally, we return a ray with this direction originating from the camera's position.
         </p>
-        <h3>Primitive Intersection</h3>
+        <p>
+        To complete the walkthrough of ray generation, I'll cover how the above ray generating process is used to actually sample the scene and obtain pixel colors.
+        To start, say we want to sample the scene for the pixel at \(x,y\).
+        This gives us a pixel coordinate value, with x being between 0 and the screen's width in pixels, and y being between 0 and the screen's height in pixels.
+        However, while these coords define a point, the pixel actually covers an area of the scene.
+        Thus, we should be able to aim the sampling ray at any point in this area.
+        To choose a point within the pixel's area, we take a uniform random sample over a unit 1x1 area and add it to the pixel coordinates.
+        Finally, we normalize the new coordinates by dividing x by the screen's width, and y by the screen's height.
+        This gives us an \(x,y\) pair we can pass into <code>generate_ray</code> to sample the scene for a given pixel.
+        </p>
 
-		<p>Here is an example 2x2 gridlike structure using an HTML table. Each <b>tr</b> is a row and each <b>td</b> is a column in that row. You might find this useful for framing and showing your result images in an organized fashion.</p>
-		<div style="display: flex; flex-direction: column; align-items: center;">
-			<table style="width: 100%; text-align: center; border-collapse: collapse;">
-			  <tr>
-				<td style="text-align: center;">
-				  <img src="cornell.png" width="400px"/>
-				  <figcaption>Caption goes here.</figcaption>
-				</td>
-				<td style="text-align: center;">
-				  <img src="cornell.png" width="400px"/>
-				  <figcaption>Caption goes here.</figcaption>
-				</td>
-			  </tr>
-			  <tr>
-				<td style="text-align: center;">
-				  <img src="cornell.png" width="400px"/>
-				  <figcaption>Caption goes here.</figcaption>
-				</td>
-				<td style="text-align: center;">
-				  <img src="cornell.png" width="400px"/>
-				  <figcaption>Caption goes here.</figcaption>
-				</td>
-			  </tr>
-			</table>
-		</div>
+        <h3>Primitive Intersection</h3>
+        <p>
+        The next functionality we need to implement ray tracing is to be able to determine the first surface struck by a given ray.
+        At this stage, all we can really do for ray-primitive intersection is iterate over every primitive in the scene and check if each one intersects the ray.
+        As we iterate over the primitives, we update the <code>max_t</code> field of the ray to be that of its earliest known intersection.
+        Then, after we've covered every primitive, we return whichever has the smallest \(t\) value, indicating it is the closest.
+        This is functional for small scenes with relatively few primitives, though it does not scale to larger scenes.
+        
+        </p>
+        <p>
+        For my triangle intersection implementation, I used the M&ouml;ller-Trumbore algorithm discussed in class to first obtain the barycentric coordinates of the ray's projection onto the triangle's plane.
+        Admittedly, I don't have a good, intuitive explanation for how the M&ouml;ller-Trumbore algorithm works beyond the derivation performed in discussion.
+        I've reproduced the general steps of this derivation below:
+        </p>
+        TODO - MOLLER TRUMBORE
+        <p>
+        Note that the M&ouml;ller-Trumbore algorithm also gives us the \(t\) value for the ray's intersection with the triangle's plane.
+        This is used to determine if the intersection falls within the ray's <code>min_t</code> and <code>max_t</code>, and we discard intersections that fail this condition.
+        With the 2 barycentric coordinates, we can determine if the projected point lands within the triangle or not.
+        The third barycentric coordinate is derived by subtracting the 2 given coords from 1.
+        Then, if all of the barycentric coords fall between 0 and 1, we know the ray intersects the triangle and can fill out the intersection information.
+        Otherwise, they don't intersect.
+        </p>
 		
 		<h2>Part 2: Bounding Volume Hierarchy</h2>
-		<p>
-		To construct the scene Bounding Volume Hierarchy (BVH), I opted to use a recursive function which splits the existing set of objects into two subsets, until the input consists of at most <code>max_leaf_size</code> primitives.
+        <p>
+        To improve upon the naive full-scene intersection scan in the previous part, we need a new data type for organizing the scene's primitives.
+        For this project, we'll use a Bounding Volume Hierarchy (BVH) with axis-aligned bounding boxes.
+		To construct the scene BVH, I opted to use a recursive function which splits the existing set of objects into two subsets, until the input consists of at most <code>max_leaf_size</code> primitives.
 		The algorithm for this function begins by iterating over the provided set of primitives, expanding a bounding box to include each encountered primitive.
 		Once the iteration is completed, we have a bounding box that encompasses every primitive in the intial set, which is assigned to the current BVH node.
 		Additionally, during this iteration, the algorithm calculates the maximum and minimum centroid coordinates along each axis, which will be used later.
@@ -262,7 +271,153 @@
         Once calculated, the result is added to the direct lighting result and returned.
         If <code>isAccumBounces</code> is <code>false</code>, just the indirect result is returned.
         </p>
+
+        <h3> Global Illumination - Gallery</h3>
+        <div style="display: flex; flex-direction: column; align-items: center;">
+			<table style="width: 100%; text-align: center; border-collapse: collapse;">
+			  <tr>
+				<td style="text-align: center;">
+				  <img src="images/gi/gi_gallery_spheres.png" width="400px"/>
+				  <figcaption>Spheres, depth 5</figcaption>
+				</td>
+                <td style="text-align: center;">
+                    <img src="images/gi/gi_gallery_bunny.png" width="400px"/>
+                    <figcaption>Bunny, depth 5</figcaption>
+                </td>
+			  </tr>
+			</table>
+		</div>
+        <div style="text-align: center;">
+            <img src="images/gi/gi_gallery_dragon.png" width="400px"/>
+            <figcaption>Dragon, depth 5</figcaption>
+        </div>
         
+
+        
+        <h3> Global Illumination - Direct vs. Indirect Renders</h3>
+        <div style="display: flex; flex-direction: column; align-items: center;">
+			<table style="width: 100%; text-align: center; border-collapse: collapse;">
+			  <tr>
+				<td style="text-align: center;">
+				  <img src="images/gi/gi_direct_spheres.png" width="400px"/>
+				  <figcaption>Direct lighting only</figcaption>
+				</td>
+                <td style="text-align: center;">
+                    <img src="images/gi/gi_indirect_spheres.png" width="400px"/>
+                    <figcaption>Indirect lighting only, up to depth 5</figcaption>
+                </td>
+			  </tr>
+			</table>
+		</div>
+
+        <h3> Global Illumination - Depth Renders</h3>
+        <div style="display: flex; flex-direction: column; align-items: center;">
+			<table style="width: 100%; text-align: center; border-collapse: collapse;">
+			  <tr>
+				<td style="text-align: center;">
+				  <img src="images/gi/gi_mth_bunny_0.png" width="400px"/>
+				  <figcaption>Render Depth 0, No Accumulation</figcaption>
+				</td>
+                <td style="text-align: center;">
+                    <img src="images/gi/gi_mth_bunny_1.png" width="400px"/>
+                    <figcaption>Render Depth 1, No Accumulation</figcaption>
+                </td>
+			  </tr>
+              <tr>
+				<td style="text-align: center;">
+				  <img src="images/gi/gi_mth_bunny_2.png" width="400px"/>
+				  <figcaption>Render Depth 2, No Accumulation</figcaption>
+				</td>
+                <td style="text-align: center;">
+                    <img src="images/gi/gi_mth_bunny_3.png" width="400px"/>
+                    <figcaption>Render Depth 3, No Accumulation</figcaption>
+                </td>
+			  </tr>
+              <tr>
+				<td style="text-align: center;">
+				  <img src="images/gi/gi_mth_bunny_4.png" width="400px"/>
+				  <figcaption>Render Depth 4, No Accumulation</figcaption>
+				</td>
+                <td style="text-align: center;">
+                    <img src="images/gi/gi_mth_bunny_5.png" width="400px"/>
+                    <figcaption>Render Depth 5, No Accumulation</figcaption>
+                </td>
+			  </tr>
+			</table>
+		</div>
+
+        <h3> Global Illumination - Accumulated Renders</h3>
+        <div style="display: flex; flex-direction: column; align-items: center;">
+			<table style="width: 100%; text-align: center; border-collapse: collapse;">
+			  <tr>
+				<td style="text-align: center;">
+				  <img src="images/gi/gi_mth_acc_bunny_0.png" width="400px"/>
+				  <figcaption>Render Depth 0, Accumulated</figcaption>
+				</td>
+                <td style="text-align: center;">
+                    <img src="images/gi/gi_mth_acc_bunny_1.png" width="400px"/>
+                    <figcaption>Render Depth 1, Accumulated</figcaption>
+                </td>
+			  </tr>
+              <tr>
+				<td style="text-align: center;">
+				  <img src="images/gi/gi_mth_acc_bunny_2.png" width="400px"/>
+				  <figcaption>Render Depth 2, Accumulated</figcaption>
+				</td>
+                <td style="text-align: center;">
+                    <img src="images/gi/gi_mth_acc_bunny_3.png" width="400px"/>
+                    <figcaption>Render Depth 3, Accumulated</figcaption>
+                </td>
+			  </tr>
+              <tr>
+				<td style="text-align: center;">
+				  <img src="images/gi/gi_mth_acc_bunny_4.png" width="400px"/>
+				  <figcaption>Render Depth 4, Accumulated</figcaption>
+				</td>
+                <td style="text-align: center;">
+                    <img src="images/gi/gi_mth_acc_bunny_5.png" width="400px"/>
+                    <figcaption>Render Depth 5, Accumulated</figcaption>
+                </td>
+			  </tr>
+			</table>
+		</div>
+
+        <h3> Global Illumination - Russian Roulette</h3>
+        <div style="display: flex; flex-direction: column; align-items: center;">
+			<table style="width: 100%; text-align: center; border-collapse: collapse;">
+			  <tr>
+				<td style="text-align: center;">
+				  <img src="images/rr/rr_bunny_0.png" width="400px"/>
+				  <figcaption>Russian Roulette, Max Depth 0</figcaption>
+				</td>
+                <td style="text-align: center;">
+                    <img src="images/rr/rr_bunny_1.png" width="400px"/>
+                    <figcaption>Russian Roulette, Max Depth 1</figcaption>
+                </td>
+			  </tr>
+              <tr>
+				<td style="text-align: center;">
+                    <img src="images/rr/rr_bunny_2.png" width="400px"/>
+                    <figcaption>Russian Roulette, Max Depth 2</figcaption>
+                </td>
+                <td style="text-align: center;">
+                    <img src="images/rr/rr_bunny_3.png" width="400px"/>
+                    <figcaption>Russian Roulette, Max Depth 3</figcaption>
+                </td>
+			  </tr>
+              <tr>
+				<td style="text-align: center;">
+                    <img src="images/rr/rr_bunny_4.png" width="400px"/>
+                    <figcaption>Russian Roulette, Max Depth 4</figcaption>
+                </td>
+                <td style="text-align: center;">
+                    <img src="images/rr/rr_bunny_100.png" width="400px"/>
+                    <figcaption>Russian Roulette, Max Depth 100</figcaption>
+                </td>
+			  </tr>
+			</table>
+		</div>
+
 		<h2>Part 5: Adaptive Sampling</h2>
 		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
 
