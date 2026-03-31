@@ -32,20 +32,27 @@
 
 		<br>
 
-		Link to webpage: (TODO) <a href="https://cs184.eecs.berkeley.edu/sp25">cs184.eecs.berkeley.edu/sp25</a>
-		Link to GitHub repository: (TODO) <a href="https://cs184.eecs.berkeley.edu/sp25">cs184.eecs.berkeley.edu/sp25</a>
+		Link to webpage: <a href="https://cal-cs184-student.github.io/hw-webpages-C-Herbert/">cal-cs184-student.github.io/hw-webpages-C-Herbert/</a> <br>
+		Link to GitHub repository: <a href="https://github.com/cal-cs184-student/hw-webpages-C-Herbert">github.com/cal-cs184-student/hw-webpages-C-Herbert</a>
 		
-		<figure>
-			<img src="cornell.png" alt="Cornell Boxes with Bunnies" style="width:70%"/>
-			<figcaption>You can add images with captions!</figcaption>
-		</figure>
-
 		<!--
 		We've already added one heading per part, to make your write-up as navigable when grading. Please fit your write-up within these sections!
 		-->
 
 		<h2>Overview</h2>
-		Give a high-level overview of what you implemented in this homework. Think about what you've built as a whole. Share your thoughts on what interesting things you've learned from completing the homework.
+		In this assignment, I implemented a ray-traced rendering engine, including several techniques to speed up render times and improve the visual quality of results.
+        The project began with ray generation for screen pixels, followed by implementing intersection functions for various primitives.
+        I then improved the performence of scene intersections with a Bounding Volume Hierarchy, making renders with 100s of thousands of primitives feasible.
+        Building on the basic intersection tests, I added calculations for sampling radiance at intersection points using equations from photometry. 
+        This was then extended with global illumination, adding indirect lightning effects to my scenes.
+        Finally, to better distribute computational resources, I added adaptive sampling, which produced faster run times by reducing the sampling rate in ares with rapidly converging samples. 
+        <p>
+        Along the way, I encountered several interesting challenges.
+        First, figuring out the difference between a BSDF and BRDF was unexpectedly complicated, and I've detailed the experience below.
+        I think the next most interesting thing was re-deriving the M&ouml;ller-Trumbore algorithm from discussion.
+        I'd derived it before, though I found going back provided some additional insights.
+        </p>
+        
 
 		<h2>Part 1: Ray Generation and Scene Intersection</h2>
 		<h3>Ray Generation</h3>
@@ -92,19 +99,75 @@
         </p>
         <p>
         For my triangle intersection implementation, I used the M&ouml;ller-Trumbore algorithm discussed in class to first obtain the barycentric coordinates of the ray's projection onto the triangle's plane.
-        Admittedly, I don't have a good, intuitive explanation for how the M&ouml;ller-Trumbore algorithm works beyond the derivation performed in discussion.
+        The algorithm is as follows:
+        </p>
+        \[\left[\matrix{t \\ b_1 \\ b_2}\right] = \frac{1}{S_1 \cdot E_1} \left[\matrix{S_2 \cdot E_2 \\ S_1 \cdot S \\ S_2 \cdot D} \right]\]
+        <p>
+        Where \(E_1\) is one edge vector of the triangle, \(E_2\) is the other edge vector sharing a base point with the \(E_1\), and \(S\) is the vector between the ray's origin and the shared point.
+        \(D\) is the ray's direction vector, while \(S_1 = D \times E_2\) and \(S_2 = S \times E_1\)
+        Admittedly, I don't have an intuitive explanation for how the M&ouml;ller-Trumbore algorithm works beyond the derivation performed in discussion.
         I've reproduced the general steps of this derivation below:
         </p>
-        TODO - MOLLER TRUMBORE
+        
         <p>
-        Note that the M&ouml;ller-Trumbore algorithm also gives us the \(t\) value for the ray's intersection with the triangle's plane.
-        This is used to determine if the intersection falls within the ray's <code>min_t</code> and <code>max_t</code>, and we discard intersections that fail this condition.
-        With the 2 barycentric coordinates, we can determine if the projected point lands within the triangle or not.
+        First, we setup a relationship to find the intersection of the ray and triangle in the form \(Mx=b\), where we wish to solve for \(x = \left[t, b_1, b_2\right]^T\).
+        Here, after setting the ray equation equal to the barycentric expression of the intersection point, we get \(M = \left[-D, E_1, E_2 \right]\) and \(b = O- P_0 = S\), where \(P_0\) is the shared triangle point.
+        Next, we'll apply Cramer's rule, which says that \(Mx = b\) can be solved for \(x\) as follows:
+        \[x = \frac{1}{|M|} \left[\matrix{|M_1| \\ |M_2| \\ |M_3|} \right]\]
+        Where \(M_i\) is \(M\) with its \(i\)th column swapped for \(b\).
+        We also use the fact that, for a matrix \([A,B,C]\), where \(A,B,C\) are column vectors:
+         \[|[A,B,C]| = -(A \times C) \cdot B = -(C \times B) \cdot A = -(B \times A) \cdot C\]
+        Thus, we have the following relations:
+        \[|M| = -(-D \times E_2 ) \cdot E_1 = S_1 \cdot E_1\]
+        \[|M_1| = -(E_1 \times S ) \cdot E_2 = S_2 \cdot E_2\]
+        \[|M_2| = -(-D \times E_2 ) \cdot S = S_1 \cdot S\]
+        \[|M_3| = -(S \times E_1 ) \cdot -D = S_2 \cdot D\]
+        And substituting into Cramer's rule gives us the M&ouml;ller-Trumbore algorithm.
+        </p>
+
+        <p>
+        My actual implementation of this algorithm follows the above defintions and calculations very closely.
+        First, we pick an arbitrary point on the triangle to be \(P_0\).
+        Then, the remaining points are labeled \(P_1\) and \(P_2\).
+        \(E_1\) is calculated as \(P_1 - P_0\), while \(E_2\) is \(P_2 - P_0\).
+        Since \(O\) and \(D\) are given as part of the ray's defintion, \(S = O - P_0\), and we can calculate the remaining \(S_1\) and \(S_2\) vectors as described above.
+        From here, we can direct apply the M&ouml;ller-Trumbore algorithm to get \(t,b_1,b2\).
+        </p>
+        <p>
+        With these calculations established, we can start performing the intersection checks.
+        The \(t\) value from the M&ouml;ller-Trumbore algorithm is used for determining if the intersection falls within the ray's <code>min_t</code> and <code>max_t</code>.
+        Any intersections failing this condition are discarded.
+        With the 2 barycentric coordinates, \(b_1\) and \(b_2\), we can determine if the projected point lands within the triangle or not.
         The third barycentric coordinate is derived by subtracting the 2 given coords from 1.
         Then, if all of the barycentric coords fall between 0 and 1, we know the ray intersects the triangle and can fill out the intersection information.
         Otherwise, they don't intersect.
         </p>
-		
+		<h3>Ray Generation - Gallery</h3>
+        <div style="display: flex; flex-direction: column; align-items: center;">
+			<table style="width: 100%; text-align: center; border-collapse: collapse;">
+			  <tr>
+				<td style="text-align: center;">
+				  <img src="images/rg/rg_spheres.png" width="400px"/>
+				  <figcaption>CBspheres_lambertian.dae, 1 sample per pixel</figcaption>
+				</td>
+                <td style="text-align: center;">
+                    <img src="images/rg/rg_banana.png" width="400px"/>
+                    <figcaption>banana.dae, 1 sample per pixel </figcaption>
+                </td>
+			  </tr>
+              <tr>
+				<td style="text-align: center;">
+                    <img src="images/rg/rg_coil.png" width="400px"/>
+                    <figcaption>CBcoil.dae, 1 sample per pixel</figcaption>
+                </td>
+                <td style="text-align: center;">
+                    <img src="images/rg/rg_teapot.png" width="400px"/>
+                    <figcaption>teapot.dae, 1 sample per pixel</figcaption>
+                </td>
+			  </tr>
+			</table>
+		</div>
+
 		<h2>Part 2: Bounding Volume Hierarchy</h2>
         <p>
         To improve upon the naive full-scene intersection scan in the previous part, we need a new data type for organizing the scene's primitives.
@@ -126,12 +189,15 @@
 		<p>
 		Once the midpoint is calculated, the algorithm finishes by iterating over the primitives once more, this time assigning each a subset based on the centroid's relation to the axis midpoint. 
 		Primitives with centroids having a coordinate along the chosen axis that is less than the midpoint are assigned to the 'left' subset, while the rest go to the 'right' subset.
-        This leaves us with two sets, on which we recursively call the function.
+        This leaves us with two sets, on which we'll recursively call the function.
         Since we use the maximum range to chose an axis, and the average of the range to divide the axis, we should always have at least 1 primitive in each set, assuming centroids don't overlap.
         This means the recursion eventually ends, as we never produce an empty subset when splitting.
 		</p>
         <p>
-        TODO: BVH iterators?
+        We can now create iterators for the two subsets by reorganizing the entries in the original iterator.
+        We do this by writing all of the left primitives first, then all of the right primitives, with an iterator in the middle starting at the first right element.
+        Now, we can finally create the two child BVH nodes, with one for each set, using the iterators.
+        The function makes a recursive call on each of these children, and the algorithm concludes by setting these new nodes to be the children of the current node. 
         </p>
         <h3> Bounding Volume Hierarchy - Examples </h3>
         <div style="display: flex; flex-direction: column; align-items: center;">
@@ -152,17 +218,37 @@
 			  </tr>
 			</table>
 		</div>
-        <h3> Bounding Volume Hierarchy - Runtime Comparison </h3>
+        <h3> Bounding Volume Hierarchy - Runtime Comparison, 1 Sample per pixel </h3>
         <div style="display: flex; flex-direction: column; align-items: center;">
 			<table style="width: 100%; text-align: center; border-collapse: collapse;">
 			  <tr>
 				<td style="text-align: center;">
-				  <img src="images/bvh/max_planck_bvh.png" width="400px"/>
-				  <figcaption>Runtime with BVH: Runtime without:</figcaption>
-				</td>
+                    <img src="images/bvh/bvh_comp_spheres.png" width="400px"/>
+                    <figcaption>Primitives: 14<br>Base Runtime: 0.0342s<br>BVH Runtime: 0.0345s</figcaption>
+                  </td>
+                <td style="text-align: center;">
+                    <img src="images/bvh/bvh_comp_banana.png" width="400px"/>
+                    <figcaption>Primitives: 2458<br>Base Runtime: 3.3154s<br>BVH Runtime: 0.0293s</figcaption>
+                </td>
+			  </tr>
+              <tr>
+				<td style="text-align: center;">
+                    <img src="images/bvh/bvh_comp_coil.png" width="400px"/>
+                    <figcaption>Primitives: 7884<br>Base Runtime: 11.8208s<br>BVH Runtime: 0.0333s</figcaption>
+                </td>
+                <td style="text-align: center;">
+                    <img src="images/bvh/bvh_comp_teapot.png" width="400px"/>
+                    <figcaption>Primitives: 2464<br>Base Runtime: 3.5302s<br>BVH Runtime: 0.0447s</figcaption>
+                </td>
 			  </tr>
 			</table>
 		</div>
+
+        <p>
+        Based on the above runtime comparisons, we can see that the BVH greatly improves performence when rendering scenes with more than just a couple primitives.
+        As the number of primitives in the scene increases, this difference becomes much more noticable.
+        Additionally, when trying to increase the sample count, I found that the naive full-scene intersection implementation was too slow to produce results with even 128 samples per pixel in a reasonable timeframe.
+        </p>
 
 		<h2>Part 3: Direct Illumination</h2>
         To implement direct illumination, we may consider several potential sampling implementations.
@@ -234,7 +320,7 @@
         While this produced good results, I still wanted a mathematical explanation.
         Thus, I began by determing the units of the BSDF and how they compared to the BRDF's own units.
         As it turns out, assuming the BSDF shares its units with reflectance, which is the specified return value, the BSDF and BRDF have different units.
-        Per Wikipedia's definition of reflectance (SOURCE?), the BSDF is a ratio of radiances, while the course slides specify the BRDF as being a ratio of outgoing radiance to incoming irradiance.
+        Per Wikipedia's definition of reflectance <a href="https://en.wikipedia.org/wiki/Reflectance">[1]</a>, the BSDF is a ratio of radiances, while the course slides specify the BRDF as being a ratio of outgoing radiance to incoming irradiance.
         Writing out the relationship between irradiance and radiance, we have:
         \[E = \int_S L \cdot \cos(\theta) d\omega\]
         Thankfully, due the the assumption that our surfaces are Lambertian, \(L\) is constant, and we just have to integrate cosine over a unit sphere.
@@ -319,6 +405,10 @@
 			  </tr>
 			</table>
 		</div>
+        <p>
+        When focusing on the soft shadows of the above images, we can clearly see a relationship between the amount of noise present in the shadows and the number of light samples taken.
+        As we increase the number of light samples, the shadows become more uniform and less noisy, with a smoother gradient between light and dark areas.
+        </p>
 
 		<h2>Part 4: Global Illumination</h2>
         <p>
@@ -351,9 +441,6 @@
         Once calculated, the result is added to the direct lighting result and returned.
         If <code>isAccumBounces</code> is <code>false</code>, just the indirect result is returned.
         </p>
-        
-        (TODO: COMPARISON WRITEUP)
-
         <h3> Global Illumination - Gallery</h3>
         <div style="display: flex; flex-direction: column; align-items: center;">
 			<table style="width: 100%; text-align: center; border-collapse: collapse;">
@@ -391,7 +478,13 @@
 			  </tr>
 			</table>
 		</div>
-
+        <p>
+        From the direct and indirect-only renders, we can see the separate effects of direct and indirect lighting.
+        Direct light is mostly responsible for highlights, creating dramatic shadows when indirect effects are removed.
+        Conversely, indirect lighting is mostly responsible for softening shadows and shading surfaces with the colors of nearby surfaces.
+        When direct lighting is removed, there's a distinct 'underlit' effect.    
+        </p>
+        
         <h3> Global Illumination - Depth Renders</h3>
         <div style="display: flex; flex-direction: column; align-items: center;">
 			<table style="width: 100%; text-align: center; border-collapse: collapse;">
@@ -427,7 +520,7 @@
 			  </tr>
 			</table>
 		</div>
-
+        
         <h3> Global Illumination - Accumulated Renders</h3>
         <div style="display: flex; flex-direction: column; align-items: center;">
 			<table style="width: 100%; text-align: center; border-collapse: collapse;">
@@ -463,6 +556,13 @@
 			  </tr>
 			</table>
 		</div>
+        <p>
+            In the renders consisting of only the second and third bounces of light, we can clearly see the contributions of illumination reflected off nearby surfaces.
+            With the bunny scene in particular, we can see how red and blue light bouncing off the red and blue walls illuminates the sides of the bunny.
+            Additionally, light bouncing off the floor illuminates the underside of the bunny and the ceiling.
+            Much of the ceiling light comes from these bounces, since the ceiling doesn't have a direct line of sight with the light embedded in it.
+            While the depth 1 image looks like it could've been rendered with rasterized Blinn-Phong shading, the second and third render depths clearly show the benefits of ray-traced indirect lightning for producing realistic results.      
+        </p>
 
         <h3> Global Illumination - Russian Roulette</h3>
         <div style="display: flex; flex-direction: column; align-items: center;">
@@ -545,10 +645,15 @@
 			  </tr>
 			</table>
 		</div>
-
+        <p>
+        From these renders, we can clearly see the importance of taking multiple samples per pixel and averaging the results.
+        If we don't sample enough, the resultant image is noisy, in terms of both brightness and pixel hue.
+        While most of the previous techniques produced noise primarily in terms of pixel brightness, having multiple bounces means a sample can be reflected from any nearby surface, potential changing its hue quite a bit.
+        With only a few samples per pixel, this hue will likely end up different from that of neighboring pixels, producing a sort of colored noise.
+        </p>
 		<h2>Part 5: Adaptive Sampling</h2>
         <p>
-        From the previous part, we can clearly see that more samples can greatly reduce the noise present in a render.
+        From the previous part, we know that more samples greatly reduce the noise present in a render.
         However, naively increasing the per-pixel sample rate for the entire image results in slow render times.
         To avoid unecessarily sampling pixels that quickly converge, we have adaptive sampling.
         </p>
@@ -616,7 +721,9 @@
 
 
 		<h2>(Optional) Part 6: Extra Credit Opportunities</h2>
-        N/A
+        <p>
+            N/A, did not attempt.
+        </p>
 		</div>
 	</body>
 </html>
