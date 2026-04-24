@@ -42,10 +42,10 @@
 		<h2>Overview</h2>
 		In this assignment, I implemented a ray-traced rendering engine, including several techniques to speed up render times and improve the visual quality of results.
         The project began with ray generation for screen pixels, followed by implementing intersection functions for various primitives.
-        I then improved the performence of scene intersections with a Bounding Volume Hierarchy, making renders with 100s of thousands of primitives feasible.
+        I then improved the performance of scene intersections with a Bounding Volume Hierarchy, making renders with 100s of thousands of primitives feasible.
         Building on the basic intersection tests, I added calculations for sampling radiance at intersection points using equations from photometry. 
-        This was then extended with global illumination, adding indirect lightning effects to my scenes.
-        Finally, to better distribute computational resources, I added adaptive sampling, which produced faster run times by reducing the sampling rate in ares with rapidly converging samples. 
+        This was then extended with global illumination, adding indirect lighting effects to my scenes.
+        Finally, to better distribute computational resources, I added adaptive sampling, which produced faster run times by reducing the sampling rate in areas with rapidly converging samples. 
         <p>
         Along the way, I encountered several interesting challenges.
         First, figuring out the difference between a BSDF and BRDF was unexpectedly complicated, and I've detailed the experience below.
@@ -110,7 +110,7 @@
         </p>
         
         <p>
-        First, we setup a relationship to find the intersection of the ray and triangle in the form \(Mx=b\), where we wish to solve for \(x = \left[t, b_1, b_2\right]^T\).
+        First, we set up a relationship to find the intersection of the ray and triangle in the form \(Mx=b\), where we wish to solve for \(x = \left[t, b_1, b_2\right]^T\).
         Here, after setting the ray equation equal to the barycentric expression of the intersection point, we get \(M = \left[-D, E_1, E_2 \right]\) and \(b = O- P_0 = S\), where \(P_0\) is the shared triangle point.
         Next, we'll apply Cramer's rule, which says that \(Mx = b\) can be solved for \(x\) as follows:
         \[x = \frac{1}{|M|} \left[\matrix{|M_1| \\ |M_2| \\ |M_3|} \right]\]
@@ -126,12 +126,12 @@
         </p>
 
         <p>
-        My actual implementation of this algorithm follows the above defintions and calculations very closely.
+        My actual implementation of this algorithm follows the above definitions and calculations very closely.
         First, we pick an arbitrary point on the triangle to be \(P_0\).
         Then, the remaining points are labeled \(P_1\) and \(P_2\).
         \(E_1\) is calculated as \(P_1 - P_0\), while \(E_2\) is \(P_2 - P_0\).
-        Since \(O\) and \(D\) are given as part of the ray's defintion, \(S = O - P_0\), and we can calculate the remaining \(S_1\) and \(S_2\) vectors as described above.
-        From here, we can direct apply the M&ouml;ller-Trumbore algorithm to get \(t,b_1,b2\).
+        Since \(O\) and \(D\) are given as part of the ray's definition, \(S = O - P_0\), we can calculate the remaining \(S_1\) and \(S_2\) vectors as described above.
+        From here, we can directly apply the M&ouml;ller-Trumbore algorithm to get \(t,b_1,b2\).
         </p>
         <p>
         With these calculations established, we can start performing the intersection checks.
@@ -174,7 +174,7 @@
         For this project, we'll use a Bounding Volume Hierarchy (BVH) with axis-aligned bounding boxes.
 		To construct the scene BVH, I opted to use a recursive function which splits the existing set of objects into two subsets, until the input consists of at most <code>max_leaf_size</code> primitives.
 		The algorithm for this function begins by iterating over the provided set of primitives, expanding a bounding box to include each encountered primitive.
-		Once the iteration is completed, we have a bounding box that encompasses every primitive in the intial set, which is assigned to the current BVH node.
+		Once the iteration is completed, we have a bounding box that encompasses every primitive in the initial set, which is assigned to the current BVH node.
 		Additionally, during this iteration, the algorithm calculates the maximum and minimum centroid coordinates along each axis, which will be used later.
 		</p>
 		<p>
@@ -190,7 +190,7 @@
 		Once the midpoint is calculated, the algorithm finishes by iterating over the primitives once more, this time assigning each a subset based on the centroid's relation to the axis midpoint. 
 		Primitives with centroids having a coordinate along the chosen axis that is less than the midpoint are assigned to the 'left' subset, while the rest go to the 'right' subset.
         This leaves us with two sets, on which we'll recursively call the function.
-        Since we use the maximum range to chose an axis, and the average of the range to divide the axis, we should always have at least 1 primitive in each set, assuming centroids don't overlap.
+        Since we use the maximum range to choose an axis, and the average of the range to divide the axis, we should always have at least 1 primitive in each set, assuming centroids don't overlap.
         This means the recursion eventually ends, as we never produce an empty subset when splitting.
 		</p>
         <p>
@@ -210,13 +210,12 @@
 				<td style="text-align: center;">
 				  <img src="images/bvh/dragon_bvh.png" width="400px"/>
 				  <figcaption>'Dragon' - 105,210 Primitives</figcaption>
-				</td>
-                <td style="text-align: center;">
-                    <img src="images/bvh/beast_bvh.png" width="400px"/>
-                    <figcaption>'Beast' - 64,618 Primitives</figcaption>
-                  </td>
-			  </tr>
 			</table>
+      <div>
+        <img src="images/bvh/beast_bvh.png" width="400px"/>
+        <figcaption>'Beast' - 64,618 Primitives</figcaption>
+      </div>
+
 		</div>
         <h3> Bounding Volume Hierarchy - Runtime Comparison, 1 Sample per pixel </h3>
         <div style="display: flex; flex-direction: column; align-items: center;">
@@ -245,8 +244,8 @@
 		</div>
 
         <p>
-        Based on the above runtime comparisons, we can see that the BVH greatly improves performence when rendering scenes with more than just a couple primitives.
-        As the number of primitives in the scene increases, this difference becomes much more noticable.
+        Based on the above runtime comparisons, we can see that the BVH greatly improves performance when rendering scenes with more than just a couple primitives.
+        As the number of primitives in the scene increases, this difference becomes much more noticeable.
         Additionally, when trying to increase the sample count, I found that the naive full-scene intersection implementation was too slow to produce results with even 128 samples per pixel in a reasonable timeframe.
         </p>
 
@@ -266,7 +265,7 @@
         With the initial calculations completed, my implementation proceeds by iterating over the following steps until <code>num_samples</code> samples are taken.
         First, an incoming direction is chosen.
         To sample directions uniformly over the normal-aligned hemisphere, <code>hemisphereSampler</code>'s <code>get_sample()</code> function is used.
-        This function works by selecting a phi between 0 and 360 degrees, with a uniform distribution, and a theta betwen 0 and 90 degrees, with a cosine distribution.
+        This function works by selecting a phi between 0 and 360 degrees, with a uniform distribution, and a theta between 0 and 90 degrees, with a cosine distribution.
         These angles are then converted to a unit vector, and used for the rest of the algorithm as '<code>w_in</code>', the sampled incoming direction.
         The probability density function for this sampling method is a uniform \( 1/(2*\pi) \), since the solid-angle area of a hemisphere is \(2*\pi\) steradians.
         This PDF is referred to as <code>pdf</code> in the reflection equation.
@@ -281,10 +280,10 @@
         The last value we need before plugging everything into the reflection equation is the actual radiance of the surface 'producing' the incoming ray.
         This is found by constructing a ray originating at the hit point with a direction determined by converting the sampled incoming direction back to world space.
         To prevent this new ray from intersecting the reflecting surface, we assign it a <code>min_t</code> value of <code>EPS_F</code>.
-        This ray is then tested against the scene's primitives, and, if it intersects any of them, we evaluate its zero-bounce radiance and proceed with the relfection equation.
+        This ray is then tested against the scene's primitives, and, if it intersects any of them, we evaluate its zero-bounce radiance and proceed with the reflection equation.
         </p>
         <p>
-        The indivdual terms of the sum are calculated using the following equation, which is itself a portion of the Monte-Carlo approximation of the reflection equation:
+        The individual terms of the sum are calculated using the following equation, which is itself a portion of the Monte-Carlo approximation of the reflection equation:
         \[\frac{(f * zero\_bounce\_radiance * cos(\theta_{w\_in}))}{pdf} \]
         Note that \(\theta_{w\_in}\) is taken in object-space, with respect to the z-axis. The algorithm then adds the result of this equation to a running total of all sample radiances.
         Once all samples are taken, the total radiance is divided by the number of samples to get the average result.
@@ -305,7 +304,7 @@
         Here, <code>sample_L</code> gives us a distribution of incoming directions over the light's surface.
         This function also gives us the zero-bounce radiance of the light, and the <code>pdf</code> value associated with <code>w_in</code>, which are used in the reflection equation as before.
         However, this function doesn't check for scene intersections, so we still need to perform our own check and discard the sample if something is blocking the light source.
-        This check calculates the incoming ray exactly as in the hemisphere sampling case, though it does have a early exit for light sources behind the reflecting surface.
+        This check calculates the incoming ray exactly as in the hemisphere sampling case, though it does have an early exit for light sources behind the reflecting surface.
         The early exit is checked by calculating the dot product of <code>w_in</code> and the incoming ray's direction.
         If the product is less than zero, the sample contributes zero to the sum, and is skipped.
         </p>
@@ -315,16 +314,16 @@
         Then, once the aggregate radiance is computed, we divide by the total number of samples, and return the result.
         </p>
         <h3>BSDF vs. BRDF</h3>
-        Figuring out why the the division by \(\pi\) needs to occur took significant effort on my part, as I feel 'what' a BSDF is and how it relates to the BRDF could've been explained/hinted at better.
+        Figuring out why the division by \(\pi\) needs to occur took significant effort on my part, as I feel 'what' a BSDF is and how it relates to the BRDF could've been explained/hinted at better.
         I initially stumbled upon the term after trying to make my own over-exposed results look like the provided examples.
         While this produced good results, I still wanted a mathematical explanation.
-        Thus, I began by determing the units of the BSDF and how they compared to the BRDF's own units.
+        Thus, I began by determining the units of the BSDF and how they compared to the BRDF's own units.
         As it turns out, assuming the BSDF shares its units with reflectance, which is the specified return value, the BSDF and BRDF have different units.
         Per Wikipedia's definition of reflectance <a href="https://en.wikipedia.org/wiki/Reflectance">[1]</a>, the BSDF is a ratio of radiances, while the course slides specify the BRDF as being a ratio of outgoing radiance to incoming irradiance.
         Writing out the relationship between irradiance and radiance, we have:
         \[E = \int_S L \cdot \cos(\theta) d\omega\]
-        Thankfully, due the the assumption that our surfaces are Lambertian, \(L\) is constant, and we just have to integrate cosine over a unit sphere.
-        This yields \(E = \pi \cdot L\), explaining the extra \(\pi\) term. 
+        Thankfully, due the assumption that our surfaces are Lambertian, \(L\) is constant, and we just have to integrate cosine over a unit sphere.
+        This yields \(E = \pi \cdot L\) <a href="https://thenumb.at/Spherical-Integration/">[2]</a>, explaining the extra \(\pi\) term. 
 
         <h3> Direct Illumination - Hemisphere vs. Importance Sampling</h3>
         <p>All images were rendered with 32 light rays.</p>
@@ -421,10 +420,10 @@
         Next, we need to pick a direction for the next bounce sample, <code>w_in</code>.
         This is done by calling <code>sample_f</code> on the reflecting surface's BSDF, which gives us an incoming direction
         This function call also returns the BSDF value for the reflecting surface, and the PDF value for the direction sample, both of which we store for later.
-        Though, before saving the BSDF's value, we divide the it by \(\pi\) to produce a BRDF result, labeled <code>f</code>.
+        Though, before saving the BSDF's value, we divide it by \(\pi\) to produce a BRDF result, labeled <code>f</code>.
         </p>
         <p>
-        We can now setup the next ray for a recursive call to <code>at_least_one_bounce_radiance</code>.
+        We can now set up the next ray for a recursive call to <code>at_least_one_bounce_radiance</code>.
         This ray will originate at the hit point, and head in a direction determined by <code>w_in</code> transformed to world-space, since <code>sample_f</code> produces an object-space direction.
         We define world-space and object space as in Part 3, and use the same normal-aligned z-axis definition for the transformation matrix.
         To ensure that recursive eventually terminates, we assign the next ray a depth one less than the depth of the current iteration's ray.
@@ -433,7 +432,7 @@
         <p>
         The algorithm is now ready to make the recursive <code>at_least_one_bounce_radiance</code> call.
         However, we only recurse if the 'next' ray's depth is greater than zero, since recursion means we'll cast rays one level deeper than the current 'next'. 
-        If this condition is satified, the recursive call is made, and we calculate the bounce's contribution to the overall radiance using the reflection equation.
+        If this condition is satisfied, the recursive call is made, and we calculate the bounce's contribution to the overall radiance using the reflection equation.
         Since we're only dealing with one sample, we drop the summation in the equation.
         Additionally, \(\cos(\theta)\) is instead calculated as the dot product of world-space <code>w_in</code> and the initial intersection's normal.
         Thus, the final equation is as follows:
@@ -561,7 +560,7 @@
             With the bunny scene in particular, we can see how red and blue light bouncing off the red and blue walls illuminates the sides of the bunny.
             Additionally, light bouncing off the floor illuminates the underside of the bunny and the ceiling.
             Much of the ceiling light comes from these bounces, since the ceiling doesn't have a direct line of sight with the light embedded in it.
-            While the depth 1 image looks like it could've been rendered with rasterized Blinn-Phong shading, the second and third render depths clearly show the benefits of ray-traced indirect lightning for producing realistic results.      
+            While the depth 1 image looks like it could've been rendered with rasterized Blinn-Phong shading, the second and third render depths clearly show the benefits of ray-traced indirect lighting for producing realistic results.      
         </p>
 
         <h3> Global Illumination - Russian Roulette</h3>
@@ -648,14 +647,14 @@
         <p>
         From these renders, we can clearly see the importance of taking multiple samples per pixel and averaging the results.
         If we don't sample enough, the resultant image is noisy, in terms of both brightness and pixel hue.
-        While most of the previous techniques produced noise primarily in terms of pixel brightness, having multiple bounces means a sample can be reflected from any nearby surface, potential changing its hue quite a bit.
+        While most of the previous techniques produced noise primarily in terms of pixel brightness, having multiple bounces means a sample can be reflected from any nearby surface, potentially changing its hue quite a bit.
         With only a few samples per pixel, this hue will likely end up different from that of neighboring pixels, producing a sort of colored noise.
         </p>
 		<h2>Part 5: Adaptive Sampling</h2>
         <p>
         From the previous part, we know that more samples greatly reduce the noise present in a render.
         However, naively increasing the per-pixel sample rate for the entire image results in slow render times.
-        To avoid unecessarily sampling pixels that quickly converge, we have adaptive sampling.
+        To avoid unnecessarily sampling pixels that quickly converge, we have adaptive sampling.
         </p>
         <p>
         Adaptive sampling works by using statistics to determine which pixels have sample values that are converging quickly.
@@ -672,7 +671,7 @@
         This implementation builds off the <code>raytrace_pixel</code> function.
         In addition to the radiance sum, we'll now track the sum of sample illuminances and the sum of the squares of sample illuminances.
         I'll label the former <code>illSum</code>, and the latter, <code>illSqrSum</code>.
-        These will be used to the check the convergence criteria periodically.
+        These will be used to check the convergence criteria periodically.
         </p>
         <p>
         Instead of checking convergence with every sample, which would be inefficient, the convergence check only occurs once for every <code>samplesPerBatch</code> samples.
@@ -721,9 +720,19 @@
 
 
 		<h2>(Optional) Part 6: Extra Credit Opportunities</h2>
-        <p>
-            N/A, did not attempt.
-        </p>
+      <p>
+        N/A, did not attempt.
+      </p>
+    
+    <h2>Sources</h2>
+    <p>
+      [1] https://en.wikipedia.org/wiki/Reflectance - Units of reflectance <br>
+      [2] https://thenumb.at/Spherical-Integration/ - Integrating over a sphere <br>
+    </p>
+    <p>
+      Aside from the potential influence of automatically generated search summaries related to the above topics, no AI was used in this project.
+    </p>
+
 		</div>
 	</body>
 </html>
