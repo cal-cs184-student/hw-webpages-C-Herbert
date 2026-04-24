@@ -148,7 +148,33 @@
         TODO: Comparison
 
 		<h2>Part 4: Handling self-collisions</h2>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+		<p>
+            To handle self-collisions, my implementation uses a hash map based on the locations of the point masses.
+            When properly implemented, this accelerates collision detection algorithm by quickly ruling out many mutually distant pairs of point masses.
+            However, such a map requires a hash function, which was the first piece I implemented.
+            My hash function works by first establishing a virtual grid of buckets, each having dimensions \(w = 3 * \frac{width}{num_width_points}\), \(h = 3 * \frac{height}{num_height_points}\), and \(t=max(w,h)\).
+            For a given 3D position, the hash function places it in the appropriate bucket by rounding each axes to the nearest multiple of the corresponding bucket dimension.
+            This is done by subtracting the <code>fmod</code> of an axis' position from the position itself, using the relevant bucket dimension as the divisor.
+            Then, from the rounded coordinates, we calculate an arbitrary hash value.
+            For my function, I went with <code>x + y * z</code>, since it seems to provide a better distribution than simply adding or subtracting the axes.
+            Some constants could be inserted to make the value more unique, but that would require more operations, and I wanted a performant hash function since it will be called many times.
+        </p>
+        <p>
+            From here, the rest of the implementation is fairly easy.
+            At each time step, we reconstruct the hash map in the <code>build_spatial_map</code> function by iterating over the point masses.
+            For each point mass, we calculate the hash value using the previously defined function and check whether the map has an existing list for that hash value.
+            If so, we simply insert the new point mass.
+            Otherwise, we construct a new list, insert the point mass, then add the list to the map.
+        </p>
+        <p>
+            Finally, to actually check for self-collisions, we begin by querying the hash map for all point masses sharing a hash value.
+            For each of these <code>other</code> masses, we check if the distance between it and the current mass is less than or equal to \(2* thickness\) using the difference vector between them.
+            Again, I applied the squaring trick for closeness checking from the sphere collision section here.
+            If the condition is satisfied, we add a correction vector that moves the current mass's position to be exactly \(2* thickness\) away from <code>other</code> to an accumulation vector.
+            After dividing by the simulation step factor, the accumulation vector is then applied to the current point mass.
+            Its also worth noting that a check needs to be performed to prevent a mass from performing a check with itself.
+            I did this by just comparing the addresses of the point masses.
+        </p>
 
 		<h2>Part 5: Shaders</h2>
 		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
