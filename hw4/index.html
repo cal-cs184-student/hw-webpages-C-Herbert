@@ -38,10 +38,7 @@
 
 		Link to GitHub repository: (TODO) <a href="https://cs184.eecs.berkeley.edu/sp25">cs184.eecs.berkeley.edu/sp25</a>
 
-		<figure>
-			<img src="clothsim.png" alt="Cloth draped over sphere" style="width:70%"/>
-			<figcaption>You can add images with captions!</figcaption>
-		</figure>
+
 
 		<!--
 		We've already added one heading per part, to make your write-up as navigable when grading. Please fit your write-up within these sections!
@@ -51,39 +48,104 @@
 		Give a high-level overview of what you implemented in this homework. Think about what you've built as a whole. Share your thoughts on what interesting things you've learned from completing the homework.
 
 		<h2>Part 1: Masses and springs</h2>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-
-		<p>Here is an example 2x2 gridlike structure using an HTML table. Each <b>tr</b> is a row and each <b>td</b> is a column in that row. You might find this useful for framing and showing your result images in an organized fashion.</p>
+		<h3>Cloth Simulator Gallery:</h3>
+        <p><i>The wireframe screenshots have had the UI trimmed for visual clarity. I've also included magnified sections which should suffer from less aliasing.</i></p>
 		<div style="display: flex; flex-direction: column; align-items: center;">
 			<table style="width: 100%; text-align: center; border-collapse: collapse;">
 			  <tr>
 				<td style="text-align: center;">
-				  <img src="clothsim.png" width="400px"/>
-				  <figcaption>Caption goes here.</figcaption>
+				  <img src="imgs/pt1/full_screenshot.png" width="400px"/>
+				  <figcaption>Full simulator UI, all constraints</figcaption>
 				</td>
 				<td style="text-align: center;">
-				  <img src="clothsim.png" width="400px"/>
-				  <figcaption>Caption goes here.</figcaption>
+				  <img src="imgs/pt1/no_shearing.png" width="400px"/>
+				  <figcaption>No shearing constraints</figcaption>
 				</td>
 			  </tr>
 			  <tr>
 				<td style="text-align: center;">
-				  <img src="clothsim.png" width="400px"/>
-				  <figcaption>Caption goes here.</figcaption>
+				  <img src="imgs/pt1/only_shearing.png" width="400px"/>
+				  <figcaption>Only shearing constraints</figcaption>
 				</td>
 				<td style="text-align: center;">
-				  <img src="clothsim.png" width="400px"/>
-				  <figcaption>Caption goes here.</figcaption>
+				  <img src="imgs/pt1/full_constraints.png" width="400px"/>
+				  <figcaption>All constraints</figcaption>
 				</td>
 			  </tr>
+              
 			</table>
+            <table style="width: 80%; text-align: center; border-collapse: collapse;">
+                <td style="text-align: center;">
+                    <img src="imgs/pt1/mag_no_shear.png" width="250px"/>
+                    <figcaption>Magnified, no shearing constraints</figcaption>
+                  </td>
+				<td style="text-align: center;">
+				  <img src="imgs/pt1/mag_only_shear.png" width="250px"/>
+				  <figcaption>Magnified, only shearing constraints</figcaption>
+				</td>
+                <td style="text-align: center;">
+                    <img src="imgs/pt1/mag_full.png" width="250px"/>
+                    <figcaption>Magnified, full constraints</figcaption>
+                  </td>
+            </table>
 		</div>
 
 		<h2>Part 2: Simulation via numerical integration</h2>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-
+		<h3>Comparison of parameters</h3>
+        <p>
+            The first constant I tried adjusting was <code>ks</code>.
+            I found that this parameter controlled the stiffness and elasticity of the cloth.
+            Low values resulted in a cloth that bounced and sagged more, while high values produced a cloth that maintained its shape better.
+            Also, at values around 200,000 N/m, the system started to demonstrate noticable instability, and began 'waving' on its own.
+        </p>
+        <p>
+            Next up was <code>density</code>, which controls how much mass each point represents.
+            This constant affects the system in an inverse manner to the <code>ks</code> constant.
+            Increasing the <code>density</code> parameter makes the cloth look less stiff for a fixed <code>ks</code> value.
+            Conversely, decreasing the density resulted in a cloth that looks more stiff, as it maintains its shape better while falling.
+            At around 0.3 g/cm^2, and all other parameters at their default values, the waving phenomenon came back.
+        </p>
+        <p>
+            Finally, the <code>damping</code> constant.
+            High values made the cloth fall more smoothly, bending more gradually and presenting fewer 'fine' wrinkles as it came to a rest.
+            I found it especially interesting how larger folds slowly revealed themselves from the cloth, without the 'noise' caused by smaller bounces and stretches.
+            Low <code>damping</code> values made the cloth swing and bounce more rapidly, typically overshooting its rest state and oscillating about the pinned axis for longer.
+            Ripples on the cloth surface are stronger and last for longer with a low <code>damping</code> value, which provides enough time for them to add together and produce a chaotic, noisy pattern over the surface.
+        </p>
+        <h3>Gallery</h3>
+        TODO: More screenshots
+		<figure>
+			<img src="imgs/pt2/default_pinned4_shaded.png" style="width:70%"/>
+			<figcaption>pinned4 scene, default parameters</figcaption>
+		</figure>
 		<h2>Part 3: Handling collisions with other objects</h2>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+		<p>
+            My implementation for sphere collision is fairly straightforward.
+            First, I check if the point mass is inside the sphere by comparing the sphere's radius with the magnitude of the difference between the point mass's position and the sphere's origin.
+            I should note that, in my implementation, I opted to compare the square of the radius and the square of the magnitude of the difference vector, since this avoids a <code>sqrt</code> operation and produces equivalent results in our case.
+            If the point mass is inside the sphere, I find the tangent point it should've intersected at by normalizing the difference vector from before, multiplying the result by the sphere's radius, and finally adding the sphere's origin.
+            This yields the desired tangent point in world-space coordinates.
+            Next, a correction vector is calculated as the difference between the tangent point and the point mass's <code>last_position</code>.
+            Per its computation, this is the vector that must be added to the point mass's <code>last_position</code> to get the tangent point.
+            If we instead add a fraction of this value, the resultant position will approach and drag along the surface, rather than snapping to it, which produces a sort of friction.
+            Thus, to add a friction effect, we multiply the correction vector by \(1-f\) before adding it to the <code>last_position</code> and assigning the result to <code>position</code>.
+        </p>
+        <p>
+            My plane collision implementation is slightly more complicated.
+            To determine if the point mass has intersected the plane, I compare the signs of two dot products.
+            The first is the dot product of the difference vector between the point mass's last position and the plane's origin point with the plane's normal vector.
+            The second is the dot product of the plane's normal and the difference vector between the point mass's current position and the plane's origin.
+            We'll call this difference vector <code>diff_now</code>.
+            If the sign changes between these two dot products, we know one difference vector makes an angle of less than 90 degrees with the plane's normal, while the other makes an angle greater than 90 degrees.
+            Thus, the point must have crossed the plane during the last time step.
+        </p>
+        <p>
+            Once we've determined a point has crossed the plane, the tangent point can be calculated by subtracting <code>diff_now</code>'s projection onto the plane's normal vector from the point mass's position.
+            Before proceeding with the correction vector calculation, I add a small offset to the tangent point, towrads the side of <code>last_position</code>, with a magnitude of <code>SURFACE_OFFSET</code>.
+            Then, the reamining correction vector, friction, and position calculations proceed as in the sphere case.
+        </p>
+
+        TODO: Comparison
 
 		<h2>Part 4: Handling self-collisions</h2>
 		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
