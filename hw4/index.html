@@ -109,28 +109,30 @@
             Low values resulted in a cloth that bounced and sagged more, while high values produced a cloth that maintained its shape better.
             Also, at values around 200,000 N/m, the system started to demonstrate noticeable instability, and began 'waving' on its own.
         </p>
-        <table style="width: 100%; text-align: center; border-collapse: collapse;">
-            <tr>
-              <td style="text-align: center;">
-                <img src="imgs/pt2/standard_fall.png" width="400px"/>
-                <figcaption>Standard parameters, for reference</figcaption>
-              </td>
-              <td style="text-align: center;">
-                <img src="imgs/pt2/ks500fall.png" width="400px"/>
-                <figcaption>\(k_s=500\)</figcaption>
-              </td>
-            </tr>
-            <tr>
+        <div style="display: flex; flex-direction: column; align-items: center;">
+            <table style="width: 100%; text-align: center; border-collapse: collapse;">
+                <tr>
                 <td style="text-align: center;">
-                  <img src="imgs/pt2/ks50Kfall.png" width="400px"/>
-                  <figcaption>\(k_s=50000\)</figcaption>
+                    <img src="imgs/pt2/standard_fall.png" width="400px"/>
+                    <figcaption>Standard parameters, for reference</figcaption>
                 </td>
                 <td style="text-align: center;">
-                    <img src="imgs/pt2/ks200KWaves.png" width="400px"/>
-                    <figcaption>Waves at \(k_s=200000\)</figcaption>
-                  </td>
-              </tr>
-        </table>
+                    <img src="imgs/pt2/ks500fall.png" width="400px"/>
+                    <figcaption>\(k_s=500\)</figcaption>
+                </td>
+                </tr>
+                <tr>
+                    <td style="text-align: center;">
+                    <img src="imgs/pt2/ks50Kfall.png" width="400px"/>
+                    <figcaption>\(k_s=50000\)</figcaption>
+                    </td>
+                    <td style="text-align: center;">
+                        <img src="imgs/pt2/ks200KWaves.png" width="400px"/>
+                        <figcaption>Waves at \(k_s=200000\)</figcaption>
+                    </td>
+                </tr>
+            </table>
+        </div>
         <p>
             Next up was <code>density</code>, which controls how much mass each point represents.
             This constant affects the system in an inverse manner to the <code>ks</code> constant.
@@ -138,28 +140,30 @@
             Conversely, decreasing the density resulted in a cloth that looks more stiff, as it maintains its shape better while falling.
             At around 0.3 g/cm^2, and all other parameters at their default values, the waving phenomenon came back.
         </p>
-        <table style="width: 100%; text-align: center; border-collapse: collapse;">
-            <tr>
-              <td style="text-align: center;">
-                <img src="imgs/pt2/standard_fall.png" width="400px"/>
-                <figcaption>Standard parameters, for reference</figcaption>
-              </td>
-              <td style="text-align: center;">
-                <img src="imgs/pt2/density1_5fall.png" width="400px"/>
-                <figcaption>\(density=1.5\)</figcaption>
-              </td>
-            </tr>
-            <tr>
+        <div style="display: flex; flex-direction: column; align-items: center;">
+            <table style="width: 100%; text-align: center; border-collapse: collapse;">
+                <tr>
                 <td style="text-align: center;">
-                  <img src="imgs/pt2/density150fall.png" width="400px"/>
-                  <figcaption>\(density=150\)</figcaption>
+                    <img src="imgs/pt2/standard_fall.png" width="400px"/>
+                    <figcaption>Standard parameters, for reference</figcaption>
                 </td>
                 <td style="text-align: center;">
-                    <img src="imgs/pt2/density0_3waves.png" width="400px"/>
-                    <figcaption>Waves at \(density=0.3\)</figcaption>
-                  </td>
-              </tr>
-        </table>
+                    <img src="imgs/pt2/density1_5fall.png" width="400px"/>
+                    <figcaption>\(density=1.5\)</figcaption>
+                </td>
+                </tr>
+                <tr>
+                    <td style="text-align: center;">
+                    <img src="imgs/pt2/density150fall.png" width="400px"/>
+                    <figcaption>\(density=150\)</figcaption>
+                    </td>
+                    <td style="text-align: center;">
+                        <img src="imgs/pt2/density0_3waves.png" width="400px"/>
+                        <figcaption>Waves at \(density=0.3\)</figcaption>
+                    </td>
+                </tr>
+            </table>
+        <div>
         <p>
             Finally, the <code>damping</code> constant.
             High values made the cloth fall more smoothly, bending more gradually and presenting fewer 'fine' wrinkles as it came to a rest.
@@ -167,28 +171,30 @@
             Low <code>damping</code> values made the cloth swing and bounce more rapidly, typically overshooting its rest state and oscillating about the pinned axis for longer.
             Ripples on the cloth surface are stronger and last for longer with a low <code>damping</code> value, which provides enough time for them to add together and produce a chaotic, noisy pattern over the surface.
         </p>
-        <table style="width: 100%; text-align: center; border-collapse: collapse;">
-            <tr>
-              <td style="text-align: center;">
-                <img src="imgs/pt2/standard_fall.png" width="400px"/>
-                <figcaption>Standard parameters, for reference</figcaption>
-              </td>
-              <td style="text-align: center;">
-                <img src="imgs/pt2/damping0_8.png" width="400px"/>
-                <figcaption>\(damping=0.8\)</figcaption>
-              </td>
-            </tr>
-            <tr>
+        <div style="display: flex; flex-direction: column; align-items: center;">
+            <table style="width: 100%; text-align: center; border-collapse: collapse;">
+                <tr>
                 <td style="text-align: center;">
-                  <img src="imgs/pt2/damping0_08.png" width="400px"/>
-                  <figcaption>\(damping=0.08\)</figcaption>
+                    <img src="imgs/pt2/standard_fall.png" width="400px"/>
+                    <figcaption>Standard parameters, for reference</figcaption>
                 </td>
                 <td style="text-align: center;">
-                    <img src="imgs/pt2/damping_overshoot.png" width="400px"/>
-                    <figcaption>Overshoot with \(damping=0.05\)</figcaption>
-                  </td>
-              </tr>
-        </table>
+                    <img src="imgs/pt2/damping0_8.png" width="400px"/>
+                    <figcaption>\(damping=0.8\)</figcaption>
+                </td>
+                </tr>
+                <tr>
+                    <td style="text-align: center;">
+                    <img src="imgs/pt2/damping0_08.png" width="400px"/>
+                    <figcaption>\(damping=0.08\)</figcaption>
+                    </td>
+                    <td style="text-align: center;">
+                        <img src="imgs/pt2/damping_overshoot.png" width="400px"/>
+                        <figcaption>Overshoot with \(damping=0.05\)</figcaption>
+                    </td>
+                </tr>
+            </table>
+        </div>
 		<figure>
 			<img src="imgs/pt2/default_pinned4_shaded.png" style="width:70%"/>
 			<figcaption>pinned4 scene, default parameters</figcaption>
@@ -278,51 +284,57 @@
             I did this by just comparing the addresses of the point masses.
         </p>
         <h3>Gallery and Comparisons</h3>
-        <table style="width: 100%; text-align: center; border-collapse: collapse;">
-            <tr>
-              <td style="text-align: center;">
-                <img src="imgs/pt4/cloth_early.png" width="400px"/>
-              </td>
-              <td style="text-align: center;">
-                <img src="imgs/pt4/cloth_mid1.png" width="400px"/>
-              </td>
-            </tr>
-            <tr>
-              <td style="text-align: center;">
-                <img src="imgs/pt4/cloth_mid2.png" width="400px"/>
-              </td>
-              <td style="text-align: center;">
-                <img src="imgs/pt4/cloth_late.png" width="400px"/>
-              </td>
-            </tr>
-        </table>
+        <div style="display: flex; flex-direction: column; align-items: center;">
+            <table style="width: 100%; text-align: center; border-collapse: collapse;">
+                <tr>
+                <td style="text-align: center;">
+                    <img src="imgs/pt4/cloth_early.png" width="400px"/>
+                </td>
+                <td style="text-align: center;">
+                    <img src="imgs/pt4/cloth_mid1.png" width="400px"/>
+                </td>
+                </tr>
+                <tr>
+                <td style="text-align: center;">
+                    <img src="imgs/pt4/cloth_mid2.png" width="400px"/>
+                </td>
+                <td style="text-align: center;">
+                    <img src="imgs/pt4/cloth_late.png" width="400px"/>
+                </td>
+                </tr>
+            </table>
+        </div>
         Low \(k_s\) and high density values produce a cloth that ruffles and folds more as it falls. 
         This can clearly be seen by contrasting the two images below with those depicting the 'standard' parameters above.
         The pair of images below use \(k_s = 2500\) and a density of \(30 g/cm^2\).
-        <table style="width: 100%; text-align: center; border-collapse: collapse;">
-            <tr>
-              <td style="text-align: center;">
-                <img src="imgs/pt4/ks2500density30_2.png" width="400px"/>
-              </td>
-              <td style="text-align: center;">
-                <img src="imgs/pt4/ks2500density30_1.png" width="400px"/>
-              </td>
-            </tr>
-        </table>
+        <div style="display: flex; flex-direction: column; align-items: center;">
+            <table style="width: 100%; text-align: center; border-collapse: collapse;">
+                <tr>
+                <td style="text-align: center;">
+                    <img src="imgs/pt4/ks2500density30_2.png" width="400px"/>
+                </td>
+                <td style="text-align: center;">
+                    <img src="imgs/pt4/ks2500density30_1.png" width="400px"/>
+                </td>
+                </tr>
+            </table>
+        </div>
         Both high \(k_s\) and low density values produce a cloth that folds less, causing the cloth to remain straight as it falls.
         At around 10x the standard spring constant, or \(\frac{1}{10}\) the standard density, the cloth exhibits a rolling, paper-like collapse.
-        <table style="width: 100%; text-align: center; border-collapse: collapse;">
-            <tr>
-              <td style="text-align: center;">
-                <img src="imgs/pt4/ks50Kdensity15.png" width="400px"/>
-                <figcaption>\(k_s= 50000\), standard density </figcaption>
-              </td>
-              <td style="text-align: center;">
-                <img src="imgs/pt4/ks5Kdensity2.png" width="400px"/>
-                <figcaption>\(k_s= 5000\), density = 2 </figcaption>
-              </td>
-            </tr>
-        </table>
+        <div style="display: flex; flex-direction: column; align-items: center;">
+            <table style="width: 100%; text-align: center; border-collapse: collapse;">
+                <tr>
+                <td style="text-align: center;">
+                    <img src="imgs/pt4/ks50Kdensity15.png" width="400px"/>
+                    <figcaption>\(k_s= 50000\), standard density </figcaption>
+                </td>
+                <td style="text-align: center;">
+                    <img src="imgs/pt4/ks5Kdensity2.png" width="400px"/>
+                    <figcaption>\(k_s= 5000\), density = 2 </figcaption>
+                </td>
+                </tr>
+            </table>
+        </div>
         <p>
             These results further confirm that similar adjustments to the spring constant and density produce inverse effects.
         </p>
@@ -346,7 +358,7 @@
         <h3>Blinn-Phong Shading</h3>
         <p>
             The Blinn-phong shading model is displayed below, and consists of three terms:
-            \[L = k_a I_a + k_d (I/r^2)\max(0, n \cdot l) + k_s (I/r^2) \max(0, n \cdot h)Yp\]
+            \[L = k_a I_a + k_d (I/r^2)\max(0, n \cdot l) + k_s (I/r^2) \max(0, n \cdot h)^p\]
             The first, \(k_a I_a\), is a constant value which represents ambient lighting and approximates the reflection of light off other objects in the scene.
             The remaining two terms operate on the light intensity falling on the object from some source at a distance \(r\) away from the object.
             Mathematically, this is written as \(I/r^2\), since the intensity of a light falls off with the square of the distance from it.
@@ -361,7 +373,7 @@
         </p>
         <h3>Shader Gallery</h3>
         <h4>Blinn-Phong</h4>
-        <div>
+        <div style="display: flex; flex-direction: column; align-items: center;">
             <table style="width: 100%; text-align: center; border-collapse: collapse;">
                 <tr>
                   <td style="text-align: center;">
@@ -386,40 +398,42 @@
               </table>
         </div>
         <h4>Texture</h4>
-        <table style="width: 100%; text-align: center; border-collapse: collapse;">
-            <tr>
-                <td style="text-align: center;">
-                <img src="imgs/pt5/texture_float.png" width="400px"/>
-                </td>
-                <td style="text-align: center;">
-                <img src="imgs/pt5/texture_ball.png" width="400px"/>
-                </td>
-            </tr>
-        </table>
-        <h4>Bump and Displacement</h4>
-        <div>
+        <div style="display: flex; flex-direction: column; align-items: center;">
             <table style="width: 100%; text-align: center; border-collapse: collapse;">
                 <tr>
-                  <td style="text-align: center;">
-                    <img src="imgs/pt5/bump_cloth.png" width="400px"/>
-                    <figcaption>Bump mapping, cloth</figcaption>
-                  </td>
-                  <td style="text-align: center;">
-                    <img src="imgs/pt5/bump_sphere.png" width="400px"/>
-                    <figcaption>Bump mapping, sphere</figcaption>
-                  </td>
+                    <td style="text-align: center;">
+                    <img src="imgs/pt5/texture_float.png" width="400px"/>
+                    </td>
+                    <td style="text-align: center;">
+                    <img src="imgs/pt5/texture_ball.png" width="400px"/>
+                    </td>
                 </tr>
-                <tr>
-                  <td style="text-align: center;">
-                    <img src="imgs/pt5/displace_cloth.png" width="400px"/>
-                    <figcaption>Displacement mapping, cloth</figcaption>
-                  </td>
-                  <td style="text-align: center;">
-                    <img src="imgs/pt5/displace_sphere.png" width="400px"/>
-                    <figcaption>Displacement mapping, sphere</figcaption>
-                  </td>
-                </tr>
-              </table>
+            </table>
+        </div>
+        <h4>Bump and Displacement</h4>
+            <div style="display: flex; flex-direction: column; align-items: center;">
+                <table style="width: 100%; text-align: center; border-collapse: collapse;">
+                    <tr>
+                    <td style="text-align: center;">
+                        <img src="imgs/pt5/bump_cloth.png" width="400px"/>
+                        <figcaption>Bump mapping, cloth</figcaption>
+                    </td>
+                    <td style="text-align: center;">
+                        <img src="imgs/pt5/bump_sphere.png" width="400px"/>
+                        <figcaption>Bump mapping, sphere</figcaption>
+                    </td>
+                    </tr>
+                    <tr>
+                    <td style="text-align: center;">
+                        <img src="imgs/pt5/displace_cloth.png" width="400px"/>
+                        <figcaption>Displacement mapping, cloth</figcaption>
+                    </td>
+                    <td style="text-align: center;">
+                        <img src="imgs/pt5/displace_sphere.png" width="400px"/>
+                        <figcaption>Displacement mapping, sphere</figcaption>
+                    </td>
+                    </tr>
+                </table>
               <p>
                 The main difference between the bump and displacement map approaches is that displacement mapping actually moves the screen position of a mesh's vertices, while bump mapping does not.
                 Both also manipulate the mesh's vertex normals to provide the illusion of depth, but only displacement mapping manipulates vertex position.
@@ -450,20 +464,22 @@
                   </td>
                 </tr>
               </table>
-        </div>
+            </div>
         <h4>Mirror</h4>
-        <table style="width: 100%; text-align: center; border-collapse: collapse;">
-            <tr>
-              <td style="text-align: center;">
-                <img src="imgs/pt5/mirror_sphere.png" width="400px"/>
-                <figcaption>Mirror, sphere</figcaption>
-              </td>
-              <td style="text-align: center;">
-                <img src="imgs/pt5/mirror_cloth.png" width="400px"/>
-                <figcaption>Mirror, cloth</figcaption>
-              </td>
-            </tr>
-        </table>
+        <div style="display: flex; flex-direction: column; align-items: center;">
+            <table style="width: 100%; text-align: center; border-collapse: collapse;">
+                <tr>
+                <td style="text-align: center;">
+                    <img src="imgs/pt5/mirror_sphere.png" width="400px"/>
+                    <figcaption>Mirror, sphere</figcaption>
+                </td>
+                <td style="text-align: center;">
+                    <img src="imgs/pt5/mirror_cloth.png" width="400px"/>
+                    <figcaption>Mirror, cloth</figcaption>
+                </td>
+                </tr>
+            </table>
+        </div>
 		</div>
 	</body>
 </html>
